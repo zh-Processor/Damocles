@@ -216,6 +216,12 @@ void adminCmd(int64_t fromGroup, const char *msg)
         sprintf(bp, "[CQ:at,qq=%lld] hello", QQId);
         CQ_sendGroupMsg(ac, fromGroup, bp);
     }
+    if (strncmp(msg, "sleep", 5) == 0) {
+        g_rollPlayEnabled = false;
+    }
+    if (strncmp(msg, "wake", 4) == 0) {
+        g_rollPlayEnabled = true;
+    }
     free(bp);
 }
 
@@ -447,7 +453,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
         int64_t QQID = strtoll(&msg[5], &t, 10);
         int32_t reqTime = atoi(t + 1);
         srand(time(NULL));
-        if (strncmp(msg, "roll:", 5) == 0) {
+        if (g_rollPlayEnabled && strncmp(msg, "roll:", 5) == 0) {
             cachedMembers[QQID].qq = QQID;
             cachedMembers[fromQQ].qq = fromQQ;
             char *bp = (char *) malloc(0x1000);
@@ -462,7 +468,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
                     rollFight((uint32_t) (reqTime < 0 ? (-reqTime) : reqTime), cachedMembers[fromQQ], cachedMembers[QQID], fromGroup);
             }
         }
-        if (strncmp(msg, "$revenge", 5) == 0) {//复仇
+        if (g_rollPlayEnabled && strncmp(msg, "$revenge", 5) == 0) {//复仇
             cachedMembers[fromQQ].qq = fromQQ;
             //cachedMembers[fromQQ].cmdCount++;//算了，复仇不限次数
             //if (cachedMembers[fromQQ].cmdCount < AVAILABLE_DAILY_CMD)

@@ -31,3 +31,4 @@ inline bool inList(int64_t qq)
 int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int64_t fromGroup);// return winner
 int64_t revenge(MemberState &qq1, int64_t fromGroup);
 static std::map<int64_t, MemberState> cachedMembers;
+static int g_rollPlayEnabled = 0;
