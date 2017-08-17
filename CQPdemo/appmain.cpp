@@ -468,7 +468,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
                     rollFight((uint32_t) (reqTime < 0 ? (-reqTime) : reqTime), cachedMembers[fromQQ], cachedMembers[QQID], fromGroup);
             }
         }
-        if (g_rollPlayEnabled && strncmp(msg, "$revenge", 5) == 0) {//复仇
+        if (g_rollPlayEnabled && strncmp(msg, "$revenge", 8) == 0) {//复仇
             cachedMembers[fromQQ].qq = fromQQ;
             //cachedMembers[fromQQ].cmdCount++;//算了，复仇不限次数
             //if (cachedMembers[fromQQ].cmdCount < AVAILABLE_DAILY_CMD)
