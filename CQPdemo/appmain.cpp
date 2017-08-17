@@ -11,736 +11,810 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "appmain.h" //Ó¦ÓÃAppIDµÈĞÅÏ¢£¬ÇëÕıÈ·ÌîĞ´£¬·ñÔò¿áQ¿ÉÄÜÎŞ·¨¼ÓÔØ
+#include "appmain.h" //åº”ç”¨AppIDç­‰ä¿¡æ¯ï¼Œè¯·æ­£ç¡®å¡«å†™ï¼Œå¦åˆ™é…·Qå¯èƒ½æ— æ³•åŠ è½½
 #include <time.h>
 
 
 #include "C:\\Python27\include\Python.h"
-#pragma comment(lib,"C:\\Python27\\libs\\python27.lib")
+
+#pragma comment(lib, "C:\\Python27\\libs\\python27.lib")
 using namespace std;
 
 typedef struct {
-	char **word;
-	int len;
-}keyword;
+    char **word;
+    int len;
+} keyword;
 
 int flag;
 
-char *welcome[] = { "Èı½ğÊÇ¸ö´ógaylao\n","ÎÒÃÇµÄÕ÷Í¾ÊÇĞÇ³½Óë´óº££¡\n","Áï½ğÍÛÀ²°¡¿áßÖ£¡\n","É¶ÍæÓ¦°¡£¿Õ¦»ØÊÂ°¡£¿ÕâÕ¦Õû°¡£¿´óÀĞÄã»á²»»á°¡£¿\n","ÍÁÍÁÊÇ¸öÃÈÃÃ×Ó£¬ÈËÃÀÉùÌğ\n","²»»á°Ù¶ÈÂï£¿²»»áGoogleÂï£¿\n","¸o¤¬ÎÒ¤¬”³¤ò†Ğ¤é¤¨!\n","cÓïÑÔÎÒÖ»·şc primer plus\n","»¶Ó­À´µ½·­³µ´óµÀ\n","Just hack for fun\n","As we do, as you know \n" };
+char *welcome[] = {"ä¸‰é‡‘æ˜¯ä¸ªå¤§gaylao\n", "æˆ‘ä»¬çš„å¾é€”æ˜¯æ˜Ÿè¾°ä¸å¤§æµ·ï¼\n", "æºœé‡‘å“‡å•¦å•Šé…·å’§ï¼\n", "å•¥ç©åº”å•Šï¼Ÿå’‹å›äº‹å•Šï¼Ÿè¿™å’‹æ•´å•Šï¼Ÿå¤§ä½¬ä½ ä¼šä¸ä¼šå•Šï¼Ÿ\n", "åœŸåœŸæ˜¯ä¸ªèŒå¦¹å­ï¼Œäººç¾å£°ç”œ\n", "ä¸ä¼šç™¾åº¦å˜›ï¼Ÿä¸ä¼šGoogleå˜›ï¼Ÿ\n", "ç«œãŒæˆ‘ãŒæ•µã‚’å–°ã‚‰ãˆ!\n", "cè¯­è¨€æˆ‘åªæœc primer plus\n",
+                   "æ¬¢è¿æ¥åˆ°ç¿»è½¦å¤§é“\n", "Just hack for fun\n", "As we do, as you know \n"};
 int lenWelcode = sizeof(welcome) / 4;
-CRITICAL_SECTION  _critical;
+CRITICAL_SECTION _critical;
 
-int ac = -1; //AuthCode µ÷ÓÃ¿áQµÄ·½·¨Ê±ĞèÒªÓÃµ½
+int ac = -1; //AuthCode è°ƒç”¨é…·Qçš„æ–¹æ³•æ—¶éœ€è¦ç”¨åˆ°
 bool enabled = false;
 PyObject *pModule;
 void checkImage(int64_t fromGroup, int64_t fromQQ, const char *msg);
 /* 
-* ·µ»ØÓ¦ÓÃµÄApiVer¡¢Appid£¬´ò°üºó½«²»»áµ÷ÓÃ
+* è¿”å›åº”ç”¨çš„ApiVerã€Appidï¼Œæ‰“åŒ…åå°†ä¸ä¼šè°ƒç”¨
 */
-CQEVENT(const char*, AppInfo, 0)() {
-	return CQAPPINFO;
+CQEVENT(const char*, AppInfo, 0)()
+{
+    return CQAPPINFO;
 }
 
 
 /* 
-* ½ÓÊÕÓ¦ÓÃAuthCode£¬¿áQ¶ÁÈ¡Ó¦ÓÃĞÅÏ¢ºó£¬Èç¹û½ÓÊÜ¸ÃÓ¦ÓÃ£¬½«»áµ÷ÓÃÕâ¸öº¯Êı²¢´«µİAuthCode¡£
-* ²»ÒªÔÚ±¾º¯Êı´¦ÀíÆäËûÈÎºÎ´úÂë£¬ÒÔÃâ·¢ÉúÒì³£Çé¿ö¡£ÈçĞèÖ´ĞĞ³õÊ¼»¯´úÂëÇëÔÚStartupÊÂ¼şÖĞÖ´ĞĞ£¨Type=1001£©¡£
+* æ¥æ”¶åº”ç”¨AuthCodeï¼Œé…·Qè¯»å–åº”ç”¨ä¿¡æ¯åï¼Œå¦‚æœæ¥å—è¯¥åº”ç”¨ï¼Œå°†ä¼šè°ƒç”¨è¿™ä¸ªå‡½æ•°å¹¶ä¼ é€’AuthCodeã€‚
+* ä¸è¦åœ¨æœ¬å‡½æ•°å¤„ç†å…¶ä»–ä»»ä½•ä»£ç ï¼Œä»¥å…å‘ç”Ÿå¼‚å¸¸æƒ…å†µã€‚å¦‚éœ€æ‰§è¡Œåˆå§‹åŒ–ä»£ç è¯·åœ¨Startupäº‹ä»¶ä¸­æ‰§è¡Œï¼ˆType=1001ï¼‰ã€‚
 */
-CQEVENT(int32_t, Initialize, 4)(int32_t AuthCode) {
-	ac = AuthCode;
-	return 0;
+CQEVENT(int32_t, Initialize, 4)(int32_t AuthCode)
+{
+    ac = AuthCode;
+    return 0;
 }
 
 
 /*
-* Type=1001 ¿áQÆô¶¯
-* ÎŞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬±¾º¯Êı¶¼»áÔÚ¿áQÆô¶¯ºóÖ´ĞĞÒ»´Î£¬ÇëÔÚÕâÀïÖ´ĞĞÓ¦ÓÃ³õÊ¼»¯´úÂë¡£
-* Èç·Ç±ØÒª£¬²»½¨ÒéÔÚÕâÀï¼ÓÔØ´°¿Ú¡££¨¿ÉÒÔÌí¼Ó²Ëµ¥£¬ÈÃÓÃ»§ÊÖ¶¯´ò¿ª´°¿Ú£©
+* Type=1001 é…·Qå¯åŠ¨
+* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œæœ¬å‡½æ•°éƒ½ä¼šåœ¨é…·Qå¯åŠ¨åæ‰§è¡Œä¸€æ¬¡ï¼Œè¯·åœ¨è¿™é‡Œæ‰§è¡Œåº”ç”¨åˆå§‹åŒ–ä»£ç ã€‚
+* å¦‚éå¿…è¦ï¼Œä¸å»ºè®®åœ¨è¿™é‡ŒåŠ è½½çª—å£ã€‚ï¼ˆå¯ä»¥æ·»åŠ èœå•ï¼Œè®©ç”¨æˆ·æ‰‹åŠ¨æ‰“å¼€çª—å£ï¼‰
 */
-CQEVENT(int32_t, __eventStartup, 0)() {
+CQEVENT(int32_t, __eventStartup, 0)()
+{
 
-	return 0;
+    return 0;
 }
 
 
 /*
-* Type=1002 ¿áQÍË³ö
-* ÎŞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬±¾º¯Êı¶¼»áÔÚ¿áQÍË³öÇ°Ö´ĞĞÒ»´Î£¬ÇëÔÚÕâÀïÖ´ĞĞ²å¼ş¹Ø±Õ´úÂë¡£
-* ±¾º¯Êıµ÷ÓÃÍê±Ïºó£¬¿áQ½«ºÜ¿ì¹Ø±Õ£¬Çë²»ÒªÔÙÍ¨¹ıÏß³ÌµÈ·½Ê½Ö´ĞĞÆäËû´úÂë¡£
+* Type=1002 é…·Qé€€å‡º
+* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œæœ¬å‡½æ•°éƒ½ä¼šåœ¨é…·Qé€€å‡ºå‰æ‰§è¡Œä¸€æ¬¡ï¼Œè¯·åœ¨è¿™é‡Œæ‰§è¡Œæ’ä»¶å…³é—­ä»£ç ã€‚
+* æœ¬å‡½æ•°è°ƒç”¨å®Œæ¯•åï¼Œé…·Qå°†å¾ˆå¿«å…³é—­ï¼Œè¯·ä¸è¦å†é€šè¿‡çº¿ç¨‹ç­‰æ–¹å¼æ‰§è¡Œå…¶ä»–ä»£ç ã€‚
 */
-CQEVENT(int32_t, __eventExit, 0)() {
+CQEVENT(int32_t, __eventExit, 0)()
+{
 
-	return 0;
+    return 0;
 }
 
 /*
-* Type=1003 Ó¦ÓÃÒÑ±»ÆôÓÃ
-* µ±Ó¦ÓÃ±»ÆôÓÃºó£¬½«ÊÕµ½´ËÊÂ¼ş¡£
-* Èç¹û¿áQÔØÈëÊ±Ó¦ÓÃÒÑ±»ÆôÓÃ£¬ÔòÔÚ_eventStartup(Type=1001,¿áQÆô¶¯)±»µ÷ÓÃºó£¬±¾º¯ÊıÒ²½«±»µ÷ÓÃÒ»´Î¡£
-* Èç·Ç±ØÒª£¬²»½¨ÒéÔÚÕâÀï¼ÓÔØ´°¿Ú¡££¨¿ÉÒÔÌí¼Ó²Ëµ¥£¬ÈÃÓÃ»§ÊÖ¶¯´ò¿ª´°¿Ú£©
+* Type=1003 åº”ç”¨å·²è¢«å¯ç”¨
+* å½“åº”ç”¨è¢«å¯ç”¨åï¼Œå°†æ”¶åˆ°æ­¤äº‹ä»¶ã€‚
+* å¦‚æœé…·Qè½½å…¥æ—¶åº”ç”¨å·²è¢«å¯ç”¨ï¼Œåˆ™åœ¨_eventStartup(Type=1001,é…·Qå¯åŠ¨)è¢«è°ƒç”¨åï¼Œæœ¬å‡½æ•°ä¹Ÿå°†è¢«è°ƒç”¨ä¸€æ¬¡ã€‚
+* å¦‚éå¿…è¦ï¼Œä¸å»ºè®®åœ¨è¿™é‡ŒåŠ è½½çª—å£ã€‚ï¼ˆå¯ä»¥æ·»åŠ èœå•ï¼Œè®©ç”¨æˆ·æ‰‹åŠ¨æ‰“å¼€çª—å£ï¼‰
 */
-CQEVENT(int32_t, __eventEnable, 0)() {
-	enabled = true;
-	Py_SetPythonHome("C:\\python27");
-	Py_Initialize();
-	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append('C:\\module')");
-	pModule = PyImport_ImportModule("CQTools");
-	InitializeCriticalSection(&_critical);
-	return 0;
-}
-
-
-/*
-* Type=1004 Ó¦ÓÃ½«±»Í£ÓÃ
-* µ±Ó¦ÓÃ±»Í£ÓÃÇ°£¬½«ÊÕµ½´ËÊÂ¼ş¡£
-* Èç¹û¿áQÔØÈëÊ±Ó¦ÓÃÒÑ±»Í£ÓÃ£¬Ôò±¾º¯Êı*²»»á*±»µ÷ÓÃ¡£
-* ÎŞÂÛ±¾Ó¦ÓÃÊÇ·ñ±»ÆôÓÃ£¬¿áQ¹Ø±ÕÇ°±¾º¯Êı¶¼*²»»á*±»µ÷ÓÃ¡£
-*/
-CQEVENT(int32_t, __eventDisable, 0)() {
-	enabled = false;
-	Py_Finalize();
-	DeleteCriticalSection(&_critical);
-	return 0;
+CQEVENT(int32_t, __eventEnable, 0)()
+{
+    enabled = true;
+    Py_SetPythonHome("C:\\python27");
+    Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('C:\\module')");
+    pModule = PyImport_ImportModule("CQTools");
+    InitializeCriticalSection(&_critical);
+    return 0;
 }
 
 
 /*
-* Type=21 Ë½ÁÄÏûÏ¢
-* subType ×ÓÀàĞÍ£¬11/À´×ÔºÃÓÑ 1/À´×ÔÔÚÏß×´Ì¬ 2/À´×ÔÈº 3/À´×ÔÌÖÂÛ×é
+* Type=1004 åº”ç”¨å°†è¢«åœç”¨
+* å½“åº”ç”¨è¢«åœç”¨å‰ï¼Œå°†æ”¶åˆ°æ­¤äº‹ä»¶ã€‚
+* å¦‚æœé…·Qè½½å…¥æ—¶åº”ç”¨å·²è¢«åœç”¨ï¼Œåˆ™æœ¬å‡½æ•°*ä¸ä¼š*è¢«è°ƒç”¨ã€‚
+* æ— è®ºæœ¬åº”ç”¨æ˜¯å¦è¢«å¯ç”¨ï¼Œé…·Qå…³é—­å‰æœ¬å‡½æ•°éƒ½*ä¸ä¼š*è¢«è°ƒç”¨ã€‚
 */
-CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, int32_t font) {
-	if ( fromQQ == 85645231 || fromQQ == 387210935 ||fromQQ == 269106906 ||fromQQ == 407508177) {
-		char *getImage = "[CQ:image,file=";
-		char *get = strstr((char *)msg, getImage);
-		if (get != NULL) {
-			checkImage(0, fromQQ, msg);
-		}
-	}
-	//Èç¹ûÒª»Ø¸´ÏûÏ¢£¬Çëµ÷ÓÃ¿áQ·½·¨·¢ËÍ£¬²¢ÇÒÕâÀï return EVENT_BLOCK - ½Ø¶Ï±¾ÌõÏûÏ¢£¬²»ÔÙ¼ÌĞø´¦Àí  ×¢Òâ£ºÓ¦ÓÃÓÅÏÈ¼¶ÉèÖÃÎª"×î¸ß"(10000)Ê±£¬²»µÃÊ¹ÓÃ±¾·µ»ØÖµ
-	//Èç¹û²»»Ø¸´ÏûÏ¢£¬½»ÓÉÖ®ºóµÄÓ¦ÓÃ/¹ıÂËÆ÷´¦Àí£¬ÕâÀï return EVENT_IGNORE - ºöÂÔ±¾ÌõÏûÏ¢
-	return EVENT_IGNORE;
+CQEVENT(int32_t, __eventDisable, 0)()
+{
+    enabled = false;
+    Py_Finalize();
+    DeleteCriticalSection(&_critical);
+    return 0;
 }
 
-void News(int64_t fromGroup) {
-	PyObject *pFunc,*pRet;
-	char * bp;
-	pFunc = PyObject_GetAttrString(pModule, "getNews");
-	pRet = PyObject_CallObject(pFunc, NULL);
-	if (pRet == NULL) {
-		bp = "[CQ:at,qq=85645231]Ã¿ÈÕÍÆËÍ»ñÈ¡Ê§°ÜÀ²£¬¿ìÈ¥ĞŞ£¡£¡";
-	}
-	else {
-		bp = PyString_AsString(pRet);
-		Py_DECREF(pRet);
-	}
-	CQ_sendGroupMsg(ac, fromGroup, bp);
-	Py_DECREF(pFunc);
+
+/*
+* Type=21 ç§èŠæ¶ˆæ¯
+* subType å­ç±»å‹ï¼Œ11/æ¥è‡ªå¥½å‹ 1/æ¥è‡ªåœ¨çº¿çŠ¶æ€ 2/æ¥è‡ªç¾¤ 3/æ¥è‡ªè®¨è®ºç»„
+*/
+CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, int32_t font)
+{
+    if (fromQQ == 85645231 || fromQQ == 387210935 || fromQQ == 269106906 || fromQQ == 407508177) {
+        char *getImage = "[CQ:image,file=";
+        char *get = strstr((char *) msg, getImage);
+        if (get != NULL) {
+            checkImage(0, fromQQ, msg);
+        }
+    }
+    //å¦‚æœè¦å›å¤æ¶ˆæ¯ï¼Œè¯·è°ƒç”¨é…·Qæ–¹æ³•å‘é€ï¼Œå¹¶ä¸”è¿™é‡Œ return EVENT_BLOCK - æˆªæ–­æœ¬æ¡æ¶ˆæ¯ï¼Œä¸å†ç»§ç»­å¤„ç†  æ³¨æ„ï¼šåº”ç”¨ä¼˜å…ˆçº§è®¾ç½®ä¸º"æœ€é«˜"(10000)æ—¶ï¼Œä¸å¾—ä½¿ç”¨æœ¬è¿”å›å€¼
+    //å¦‚æœä¸å›å¤æ¶ˆæ¯ï¼Œäº¤ç”±ä¹‹åçš„åº”ç”¨/è¿‡æ»¤å™¨å¤„ç†ï¼Œè¿™é‡Œ return EVENT_IGNORE - å¿½ç•¥æœ¬æ¡æ¶ˆæ¯
+    return EVENT_IGNORE;
 }
 
-void recentNews(int64_t fromGroup) {
-	PyObject *pFunc, *pRet;
-	char * bp;
-	pFunc = PyObject_GetAttrString(pModule, "getRecentNews");
-	pRet = PyObject_CallObject(pFunc, NULL);
-	if (pRet == NULL) {
-		bp = "[CQ:at,qq=85645231]Ã¿ÈÕÍÆËÍ»ñÈ¡Ê§°ÜÀ²£¬¿ìÈ¥ĞŞ£¡£¡";
-	}
-	else {
-		bp = PyString_AsString(pRet);
-		Py_DECREF(pRet);
-	}
-	CQ_sendGroupMsg(ac, fromGroup, bp);
-	Py_DECREF(pFunc);
-}
-void startGetNews(int64_t fromGroup) {
-	PyObject *pFunc, *pRet;
-	char * bp;
-	pFunc = PyObject_GetAttrString(pModule, "getDailyNews");
-	pRet = PyObject_CallObject(pFunc, NULL);
-	if (pRet == NULL) {
-		bp = "[CQ:at,qq=85645231]Ã¿ÈÕÍÆËÍ»ñÈ¡Ê§°ÜÀ²£¬¿ìÈ¥ĞŞ£¡£¡£¡";
-	}
-	else {
-		bp = PyString_AsString(pRet);
-		Py_DECREF(pRet);
-	}
-	CQ_addLog(ac, 1, "test", bp);
-	if (strcmp(bp,"null")) {
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	Py_DECREF(pFunc);
+void News(int64_t fromGroup)
+{
+    PyObject *pFunc, *pRet;
+    char *bp;
+    pFunc = PyObject_GetAttrString(pModule, "getNews");
+    pRet = PyObject_CallObject(pFunc, NULL);
+    if (pRet == NULL) {
+        bp = "[CQ:at,qq=85645231]æ¯æ—¥æ¨é€è·å–å¤±è´¥å•¦ï¼Œå¿«å»ä¿®ï¼ï¼";
+    } else {
+        bp = PyString_AsString(pRet);
+        Py_DECREF(pRet);
+    }
+    CQ_sendGroupMsg(ac, fromGroup, bp);
+    Py_DECREF(pFunc);
 }
 
-void adminCmd(int64_t fromGroup, const char * msg) {
-	int64_t QQId;
-	char *t;
-	long int ti;
-	char *bp = (char *)malloc(0x1000);
-	if (strncmp(msg, "ban:", 4) == 0) {
-		QQId = strtoll(&msg[4], &t, 10);
-		ti = atoi(t + 1);
-		CQ_setGroupBan(ac, fromGroup, QQId, 60 * ti);
-	}
-	if (strncmp(msg, "fban:", 5) == 0) {
-		QQId = strtoll(&msg[5],&t,10);
-		ti = atoi(t+1);
-		flag = 1;
-		while (flag) {
-			CQ_setGroupBan(ac, fromGroup, QQId, 60 * ti);
-			Sleep(1000 * 60 * ti);
-		}
-	}
-	if (strncmp(msg, "unban", 6) == 0) {
-		flag = 0;
-	}
-	if (strncmp(msg, "news", 4) == 0) {
-		while (1) {
-			startGetNews(fromGroup);
-			Sleep(1000 * 60 * 60);
-		}
-	}
-	if (strncmp(msg, "at:", 3) == 0) {
-		QQId = atoll(&msg[3]);
-		sprintf(bp, "[CQ:at,qq=%lld] hello", QQId);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	free(bp);
+void recentNews(int64_t fromGroup)
+{
+    PyObject *pFunc, *pRet;
+    char *bp;
+    pFunc = PyObject_GetAttrString(pModule, "getRecentNews");
+    pRet = PyObject_CallObject(pFunc, NULL);
+    if (pRet == NULL) {
+        bp = "[CQ:at,qq=85645231]æ¯æ—¥æ¨é€è·å–å¤±è´¥å•¦ï¼Œå¿«å»ä¿®ï¼ï¼";
+    } else {
+        bp = PyString_AsString(pRet);
+        Py_DECREF(pRet);
+    }
+    CQ_sendGroupMsg(ac, fromGroup, bp);
+    Py_DECREF(pFunc);
+}
+
+void startGetNews(int64_t fromGroup)
+{
+    PyObject *pFunc, *pRet;
+    char *bp;
+    pFunc = PyObject_GetAttrString(pModule, "getDailyNews");
+    pRet = PyObject_CallObject(pFunc, NULL);
+    if (pRet == NULL) {
+        bp = "[CQ:at,qq=85645231]æ¯æ—¥æ¨é€è·å–å¤±è´¥å•¦ï¼Œå¿«å»ä¿®ï¼ï¼ï¼";
+    } else {
+        bp = PyString_AsString(pRet);
+        Py_DECREF(pRet);
+    }
+    CQ_addLog(ac, 1, "test", bp);
+    if (strcmp(bp, "null")) {
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    Py_DECREF(pFunc);
+}
+
+void adminCmd(int64_t fromGroup, const char *msg)
+{
+    int64_t QQId;
+    char *t;
+    long int ti;
+    char *bp = (char *) malloc(0x1000);
+    if (strncmp(msg, "ban:", 4) == 0) {
+        QQId = strtoll(&msg[4], &t, 10);
+        ti = atoi(t + 1);
+        CQ_setGroupBan(ac, fromGroup, QQId, 60 * ti);
+    }
+    if (strncmp(msg, "fban:", 5) == 0) {
+        QQId = strtoll(&msg[5], &t, 10);
+        ti = atoi(t + 1);
+        flag = 1;
+        while (flag) {
+            CQ_setGroupBan(ac, fromGroup, QQId, 60 * ti);
+            Sleep(1000 * 60 * ti);
+        }
+    }
+    if (strncmp(msg, "unban", 6) == 0) {
+        flag = 0;
+    }
+    if (strncmp(msg, "news", 4) == 0) {
+        while (1) {
+            startGetNews(fromGroup);
+            Sleep(1000 * 60 * 60);
+        }
+    }
+    if (strncmp(msg, "at:", 3) == 0) {
+        QQId = atoll(&msg[3]);
+        sprintf(bp, "[CQ:at,qq=%lld] hello", QQId);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (strncmp(msg, "sleep", 5) == 0) {
+        g_rollPlayEnabled = 0;
+    }
+    if (strncmp(msg, "wake", 4) == 0) {
+        g_rollPlayEnabled = 1;
+    }
+    free(bp);
 }
 
 int64_t times[200];
 
-void requestAt(int64_t fromGroup, int64_t fromQQ, const char *msg) {
-	char *bp = (char *)malloc(0x1000);
-	for (int i = 0; i < 200; i++) {
-		if (times[i * 2] == fromQQ) {
-			times[i * 2 + 1]++;
-			if (times[i * 2 + 1] == 4) {
-				times[i * 2 + 1] = 0;
-				CQ_setGroupBan(ac, fromGroup, fromQQ, 3600);
-				sprintf(bp, "[CQ:at,qq=%lld] ÀÏÊÇÕÒÎÒÊÇÏë¸ÉÉ¶£¿Æ¤£¿", fromQQ);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				sprintf(bp, "[CQ:at,qq=%lld] °¥ßÏ£¬Õ¦²»ËµËµ»°ÁË£¿", fromQQ);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				sprintf(bp, "[CQ:at,qq=%lld] Äãµ¹ÊÇËµ»°°¡!", fromQQ);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				sprintf(bp, "[CQ:at,qq=%lld] ÓĞÉ¶ÎÊÌâËµ³öÀ´ÎÒÃÇ´ó¼Ò°ïÄã½â¾ö°¡!", fromQQ);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				return;
-			}
-			break;
-		}
-		else if (times[i * 2] == 0) {
-			times[i * 2] = fromQQ;
-			break;
-		}
-		free(bp);
-	}
-	//sprintf(bp, "[CQ:at,qq=%lld] ÕÒÎÒ¸ÉÊ²Ã´", fromQQ);
-	//CQ_sendGroupMsg(ac, fromGroup, bp);
-	free(bp);
+void requestAt(int64_t fromGroup, int64_t fromQQ, const char *msg)
+{
+    cachedMembers[fromQQ].qq = fromQQ;
+    cachedMembers[fromQQ].atMasterCount++;
+    char *bp = (char *) malloc(0x1000);
+    if (cachedMembers[fromQQ].atMasterCount > AVAILABLE_DAILY_AT) {
+        CQ_setGroupBan(ac, fromGroup, fromQQ, 60);
+        sprintf(bp, "[CQ:at,qq=%lld] å¥½çƒ¦å•Šä½ ï¼Œä»Šå¤©ä½ éƒ½@è€å­%dæ¬¡äº†", cachedMembers[fromQQ].atMasterCount);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    for (int i = 0; i < 200; i++) {
+        if (times[i * 2] == fromQQ) {
+            times[i * 2 + 1]++;
+            if (times[i * 2 + 1] == 4) {
+                times[i * 2 + 1] = 0;
+                CQ_setGroupBan(ac, fromGroup, fromQQ, 3600);
+                sprintf(bp, "[CQ:at,qq=%lld] è€æ˜¯æ‰¾æˆ‘æ˜¯æƒ³å¹²å•¥ï¼Ÿçš®ï¼Ÿ", fromQQ);
+                CQ_sendGroupMsg(ac, fromGroup, bp);
+                sprintf(bp, "[CQ:at,qq=%lld] å“å‘¦ï¼Œå’‹ä¸è¯´è¯´è¯äº†ï¼Ÿ", fromQQ);
+                CQ_sendGroupMsg(ac, fromGroup, bp);
+                sprintf(bp, "[CQ:at,qq=%lld] ä½ å€’æ˜¯è¯´è¯å•Š!", fromQQ);
+                CQ_sendGroupMsg(ac, fromGroup, bp);
+                sprintf(bp, "[CQ:at,qq=%lld] æœ‰å•¥é—®é¢˜è¯´å‡ºæ¥æˆ‘ä»¬å¤§å®¶å¸®ä½ è§£å†³å•Š!", fromQQ);
+                CQ_sendGroupMsg(ac, fromGroup, bp);
+                return;
+            }
+            break;
+        } else if (times[i * 2] == 0) {
+            times[i * 2] = fromQQ;
+            break;
+        }
+        free(bp);
+    }
+    //sprintf(bp, "[CQ:at,qq=%lld] æ‰¾æˆ‘å¹²ä»€ä¹ˆ", fromQQ);
+    //CQ_sendGroupMsg(ac, fromGroup, bp);
+    free(bp);
 }
 
-void checkImage(int64_t fromGroup, int64_t fromQQ,const char *msg) {
-	PyObject *pFunc,*pArg,*pRet;
-	int time;
-	char *bp = (char *)malloc(0x1000);
-	pFunc = PyObject_GetAttrString(pModule, "aliCheck");
-	pArg = Py_BuildValue("(s)", msg);
-	pRet = PyObject_CallObject(pFunc, pArg);
-	time = PyInt_AsLong(pRet);
-	if (time == -1) {
-		CQ_addLog(ac, 1, "test", "error");
-	}
-	else if (time != 0) {
-		CQ_setGroupBan(ac, fromGroup, fromQQ, time);
-		sprintf(bp, "[CQ:at,qq=%lld] ¶¼ËµÁË¶àÉÙ´ÎÁË£¬ÎÒÃÇÊÇÕı½ôÈº£¡", fromQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-		Py_DECREF(pRet);
-	}
-	free(bp);
-	Py_DECREF(pFunc);
-	Py_DECREF(pArg);
-	
+void checkImage(int64_t fromGroup, int64_t fromQQ, const char *msg)
+{
+    PyObject *pFunc, *pArg, *pRet;
+    int time;
+    char *bp = (char *) malloc(0x1000);
+    pFunc = PyObject_GetAttrString(pModule, "aliCheck");
+    pArg = Py_BuildValue("(s)", msg);
+    pRet = PyObject_CallObject(pFunc, pArg);
+    time = PyInt_AsLong(pRet);
+    if (time == -1) {
+        CQ_addLog(ac, 1, "test", "error");
+    } else if (time != 0) {
+        CQ_setGroupBan(ac, fromGroup, fromQQ, time);
+        sprintf(bp, "[CQ:at,qq=%lld] éƒ½è¯´äº†å¤šå°‘æ¬¡äº†ï¼Œæˆ‘ä»¬æ˜¯æ­£ç´§ç¾¤ï¼", fromQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+        Py_DECREF(pRet);
+    }
+    free(bp);
+    Py_DECREF(pFunc);
+    Py_DECREF(pArg);
+
 }
-char *(keyIsa[]) = {"°²Ğ­","Ğ­»á","ĞÅÏ¢°²È«Ğ­»á","ÍøÂç¿Õ¼ä°²È«Ğ­»á","VidarĞÅÏ¢°²È«ÊµÑéÊÒ"};
-char *(keyWhere[]) = { "ÄÄ","Î»ÖÃ","µØÖ·","ÔõÃ´È¥","ÔõÃ´×ß","Õ¦È¥"};
+
+char *(keyIsa[]) = {"å®‰å", "åä¼š", "ä¿¡æ¯å®‰å…¨åä¼š", "ç½‘ç»œç©ºé—´å®‰å…¨åä¼š", "Vidarä¿¡æ¯å®‰å…¨å®éªŒå®¤"};
+char *(keyWhere[]) = {"å“ª", "ä½ç½®", "åœ°å€", "æ€ä¹ˆå»", "æ€ä¹ˆèµ°", "å’‹å»"};
 int lenIsa = sizeof(keyIsa) / 4;
 int lenWhere = sizeof(keyWhere) / 4;
-keyword where[2] = { {keyIsa,lenIsa},{keyWhere,lenWhere} };
+keyword where[2] = {{keyIsa,   lenIsa},
+                    {keyWhere, lenWhere}};
 
-char *(keyA[]) = { "Çó","Ïë¿´","ÓĞÃ»ÓĞ" };
-char *(keyB[]) = { "nvzhuang","Å®×°" };
-char *(keyC[]) = { "ÈºÖ÷","dalao","´óÀĞ","ÕÕ","ÕÕÆ¬" };
+char *(keyA[]) = {"æ±‚", "æƒ³çœ‹", "æœ‰æ²¡æœ‰"};
+char *(keyB[]) = {"nvzhuang", "å¥³è£…"};
+char *(keyC[]) = {"ç¾¤ä¸»", "dalao", "å¤§ä½¬", "ç…§", "ç…§ç‰‡"};
 int lenA = sizeof(keyA) / 4;
 int lenB = sizeof(keyB) / 4;
 int lenC = sizeof(keyC) / 4;
-keyword nvzhuang[] = { {keyA,lenA},{keyB,lenB},{keyC,lenC} };
+keyword nvzhuang[] = {{keyA, lenA},
+                      {keyB, lenB},
+                      {keyC, lenC}};
 
-char *(keyWhat[]) = { "cÓïÑÔ","CÓïÑÔ","±à³Ì","ºÚ¿Í","ĞÅ°²","°²È«", "c", "C"};
+char *(keyWhat[]) = {"cè¯­è¨€", "Cè¯­è¨€", "ç¼–ç¨‹", "é»‘å®¢", "ä¿¡å®‰", "å®‰å…¨", "c", "C"};
 int lenWhat = sizeof(keyWhat) / 4;
-char *(keyHow[]) = { "Ê²Ã´","ÔõÃ´","Ó¦¸Ã","ÈçºÎ","ÄÄĞ©","ÓĞÃ»ÓĞ" ,"ÓĞ¹Ø", "Ïë","½Ì","Õ¦","Ã´?","Ã´£¿","ÄØ","Âğ","Ã»£¿","Ã»?" };
+char *(keyHow[]) = {"ä»€ä¹ˆ", "æ€ä¹ˆ", "åº”è¯¥", "å¦‚ä½•", "å“ªäº›", "æœ‰æ²¡æœ‰", "æœ‰å…³", "æƒ³", "æ•™", "å’‹", "ä¹ˆ?", "ä¹ˆï¼Ÿ", "å‘¢", "å—", "æ²¡ï¼Ÿ", "æ²¡?"};
 int lenHow = sizeof(keyHow) / 4;
-char *(keyLearn[]) = { "Ñ§","ÁË½â","Êé","Ğ´","¿´","ÈëÃÅ", "µ±", "×ö"};
+char *(keyLearn[]) = {"å­¦", "äº†è§£", "ä¹¦", "å†™", "çœ‹", "å…¥é—¨", "å½“", "åš"};
 int lenLearn = sizeof(keyLearn) / 4;
-keyword learn[] = { { keyWhat,lenWhat },{ keyHow,lenHow },{ keyLearn,lenLearn } };
+keyword learn[] = {{keyWhat,  lenWhat},
+                   {keyHow,   lenHow},
+                   {keyLearn, lenLearn}};
 
-char *(keyHack[]) = {"ÈÕ","ÄÃ","ºÚ","ÈëÇÖ","¹¥»÷","ÍÏ","µÁ","Ë¢"};
+char *(keyHack[]) = {"æ—¥", "æ‹¿", "é»‘", "å…¥ä¾µ", "æ”»å‡»", "æ‹–", "ç›—", "åˆ·"};
 int lenHack = sizeof(keyHack) / 4;
-char *(keyWeb[]) = { "Êı¾İ","Õ¾","º¼µç","¹ÙÍø", "¿â" ,"QQ","qq","×ê","»áÔ±","ºÅ","¹Ò"};
+char *(keyWeb[]) = {"æ•°æ®", "ç«™", "æ­ç”µ", "å®˜ç½‘", "åº“", "QQ", "qq", "é’»", "ä¼šå‘˜", "å·", "æŒ‚"};
 int lenWeb = sizeof(keyWeb) / 4;
-keyword hack[] = { { keyHack ,lenHack },{ keyWeb ,lenWeb }, { keyHow ,lenHow } };
+keyword hack[] = {{keyHack, lenHack},
+                  {keyWeb,  lenWeb},
+                  {keyHow,  lenHow}};
 
-char *(keyReg[]) = {"ÕĞĞÂ","±¨Ãû","¼ÓÈë"};
+char *(keyReg[]) = {"æ‹›æ–°", "æŠ¥å", "åŠ å…¥"};
 int lenReg = sizeof(keyReg) / 4;
-keyword reg[] = { { keyReg ,lenReg }, { keyHow ,lenHow } };
+keyword reg[] = {{keyReg, lenReg},
+                 {keyHow, lenHow}};
 
-char *(keyPersion[]) = {"ÈË"};
+char *(keyPersion[]) = {"äºº"};
 int lenPersion = sizeof(keyPersion) / 4;
-keyword persion[] = { { keyHow,lenHow },{ keyPersion,lenPersion },{ keyIsa,lenIsa } };
+keyword persion[] = {{keyHow,     lenHow},
+                     {keyPersion, lenPersion},
+                     {keyIsa,     lenIsa}};
 
-int checkExist(keyword *key, const char *msg, int len) {
-	int i;
-	for (i = 0; i < key[len - 1].len; i++) {
-		if (strstr(msg, key[len-1].word[i])) {
-			if (len != 1) {
-				return checkExist(key, msg, len - 1);
-			}
-			else {
-				return 1;
-			}
-		}
-	}
-	return 0;
+int checkExist(keyword *key, const char *msg, int len)
+{
+    int i;
+    for (i = 0; i < key[len - 1].len; i++) {
+        if (strstr(msg, key[len - 1].word[i])) {
+            if (len != 1) {
+                return checkExist(key, msg, len - 1);
+            } else {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
-void checkWord(int64_t fromGroup, int64_t fromQQ, const char *msg) {
-	char *bp = (char *)malloc(0x1000);
-	struct tm *local;
-	time_t t;
-	if (checkExist(nvzhuang, msg, 2)){
-		sprintf(bp, "[CQ:at,qq=%lld] ÎÒ¸øÄã10·ÖÖÓÈ¥×¼±¸ºÃÄãµÄÅ®×°");
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-		CQ_setGroupBan(ac, fromGroup, fromQQ, 600);
-	}
-	if (checkExist(where, msg, 2)) {
-		sprintf(bp, "[CQ:at,qq=%lld] Èç¹ûÄãÊÇÏëÎÊĞÅÏ¢°²È«Ğ­»áµØÖ·µÄ»°¡£ÊÇÔÚÒ»½Ì£¨ĞÅÈÊÂ¥£©111£¬»òÕßÒ»½ÌÈıÂ¥¡°Ò»½ÌÂôÈÈ¹·¡±£¬»¹ÓĞ¿Æ¼¼¹İ613¡£\n»¶Ó­ËæÊ±¹ıÀ´[CQ:face,id=21]", fromQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	if (checkExist(learn, msg, 3)) {
-		sprintf(bp, "[CQ:at,qq=%lld] Èç¹ûÏëÈëÃÅµÄ»°£¬»¹ÊÇÒªÒÔcÓïÑÔÎª»ù´¡¡£\nÖÁÓÚÑ§Ï°cÓïÑÔ×îÓĞĞ§µÄ»¹ÊÇ¿´C primer plus¡£http://t.cn/RCP5AgV \nPS: ×îºÃ²»Òª¿´Ì·ºÆÇ¿£¬XXÌì¾«Í¨»òÕßÊÇ´ÓÈëÃÅµ½¾«Í¨ÏµÁĞ [CQ:face,id=21]", fromQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	if (checkExist(hack, msg, 3)) {
-		sprintf(bp, "[CQ:at,qq=%lld] ¹ú¼ÒĞÌ·¨µÚ¶ş°Ù°ËÊ®ÁùÌõ¹æ¶¨£¬\n¹ØÓÚ¶ñÒâÀûÓÃ¼ÆËã»ú·¸×ïÏà¹ØÌõÎÄ¶ÔÓÚÎ¥·´¹ú¼Ò¹æ¶¨£¬¶Ô¼ÆËã»úĞÅÏ¢ÏµÍ³¹¦ÄÜ½øĞĞÉ¾³ı¡¢ĞŞ¸Ä¡¢Ôö¼Ó¡¢¸ÉÈÅ£¬Ôì³É¼ÆËã»úĞÅÏ¢ÏµÍ³²»ÄÜÕı³£ÔËĞĞ£¬ºó¹ûÑÏÖØµÄ£¬´¦ÎåÄêÒÔÏÂÓĞÆÚÍ½ĞÌ»òÕß¾ĞÒÛ£»ºó¹ûÌØ±ğÑÏÖØµÄ£¬´¦ÎåÄêÒÔÉÏÓĞÆÚÍ½ĞÌ¡£\nÎ¥·´¹ú¼Ò¹æ¶¨£¬¶Ô¼ÆËã»úĞÅÏ¢ÏµÍ³ÖĞ´æ´¢¡¢´¦Àí»òÕß´«ÊäµÄÊı¾İºÍÓ¦ÓÃ³ÌĞò½øĞĞÉ¾³ı¡¢ĞŞ¸Ä¡¢Ôö¼ÓµÄ²Ù×÷£¬ºó¹ûÑÏÖØµÄ£¬ÒÀÕÕÇ°¿îµÄ¹æ¶¨´¦·£¡£", fromQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	if (checkExist(reg, msg, 2)) {
-		sprintf(bp, "[CQ:at,qq=%lld] ÏßÉÏµÄ±¨ÃûµØÖ·ÔİÎ´¿ª·Å£¬Ö½ÖÊÔÚÃæÊÔµÄÊ±ºò´ø¹ıÀ´¡£\nÍÆ¼öÏßÉÏ±¨Ãûo(*^¨Œ^*)©¿[CQ:face,id=21]", fromQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	if (checkExist(persion, msg, 3)) {
-		t = time(NULL);
-		local = localtime(&t);
-		char timeb[200];
-		if (local->tm_hour <= 6) {
-			sprintf(bp, "[CQ:at,qq=%lld] ÕâÃ´Ôç¹À¼ÆÃ»Ê²Ã´ÈËÆğÀ´", fromQQ);
-		}
-		else if (local->tm_hour >= 7 && local->tm_hour <= 9) {
-			sprintf(bp, "[CQ:at,qq=%lld] ´ó¸Å¶¼ÔÚË¯¾õ°É£¬²»ÖªµÀ½ñÌìÓĞÃ»ÓĞÈËÔçÆğ", fromQQ);
-		}
-		else if (local->tm_hour >= 10 && local->tm_hour <= 11) {
-			sprintf(bp, "[CQ:at,qq=%lld] ÕâµãÓ¦¸ÃÓĞÈË¿ªÃÅÁË", fromQQ);
-		}
-		else if (local->tm_hour == 12) {
-			sprintf(bp, "[CQ:at,qq=%lld] ²»Çå³ş£¬Ã»ÓĞ¼¯ÌåÈ¥³ÔÎç·¹µÄ»°Ó¦¸ÃÓĞÈË", fromQQ);
-		}
-		else if (local->tm_hour >= 13 && local->tm_hour <= 16) {
-			sprintf(bp, "[CQ:at,qq=%lld] ÏÂÎçÒ»°ã¶¼ÓĞÈËÔÚµÄ", fromQQ);
-		}
-		else if (local->tm_hour >= 17 && local->tm_hour <= 18) {
-			sprintf(bp, "[CQ:at,qq=%lld] ²»Çå³ş£¬Ã»ÓĞ¼¯ÌåÈ¥³ÔÍí·¹µÄ»°Ó¦¸ÃÓĞÈË", fromQQ);
-		}
-		else if (local->tm_hour >= 19 && local->tm_hour <= 21) {
-			sprintf(bp, "[CQ:at,qq=%lld] ÈËÓ¦¸Ã¶¼Ã»»ØÈ¥ÄØ", fromQQ);
-		}
-		else if (local->tm_hour >= 22 && local->tm_hour <= 23) {
-			sprintf(bp, "[CQ:at,qq=%lld] ÕâÃ´ÍíÁË£¬³ı·ÇÓĞÈËÍ¨Ïü£¬²»È»Ó¦¸ÃÃ»ÈËÁË", fromQQ);
-		}
-		else {
-			sprintf(bp, "[CQ:at,qq=85645231] Äã´úÂëbugÁË", fromQQ);
-		}
-		sprintf(timeb, " %02d:%02d", local->tm_hour, local->tm_min);
-		strcat(bp, timeb);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-		free(bp);
-	}
-	free(bp);
+void checkWord(int64_t fromGroup, int64_t fromQQ, const char *msg)
+{
+    char *bp = (char *) malloc(0x1000);
+    struct tm *local;
+    time_t t;
+    if (checkExist(nvzhuang, msg, 2)) {
+        sprintf(bp, "[CQ:at,qq=%lld] æˆ‘ç»™ä½ 10åˆ†é’Ÿå»å‡†å¤‡å¥½ä½ çš„å¥³è£…");
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+        CQ_setGroupBan(ac, fromGroup, fromQQ, 600);
+    }
+    if (checkExist(where, msg, 2)) {
+        sprintf(bp, "[CQ:at,qq=%lld] å¦‚æœä½ æ˜¯æƒ³é—®ä¿¡æ¯å®‰å…¨åä¼šåœ°å€çš„è¯ã€‚æ˜¯åœ¨ä¸€æ•™ï¼ˆä¿¡ä»æ¥¼ï¼‰111ï¼Œæˆ–è€…ä¸€æ•™ä¸‰æ¥¼â€œä¸€æ•™å–çƒ­ç‹—â€ï¼Œè¿˜æœ‰ç§‘æŠ€é¦†613ã€‚\næ¬¢è¿éšæ—¶è¿‡æ¥[CQ:face,id=21]", fromQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (checkExist(learn, msg, 3)) {
+        sprintf(bp, "[CQ:at,qq=%lld] å¦‚æœæƒ³å…¥é—¨çš„è¯ï¼Œè¿˜æ˜¯è¦ä»¥cè¯­è¨€ä¸ºåŸºç¡€ã€‚\nè‡³äºå­¦ä¹ cè¯­è¨€æœ€æœ‰æ•ˆçš„è¿˜æ˜¯çœ‹C primer plusã€‚http://t.cn/RCP5AgV \nPS: æœ€å¥½ä¸è¦çœ‹è°­æµ©å¼ºï¼ŒXXå¤©ç²¾é€šæˆ–è€…æ˜¯ä»å…¥é—¨åˆ°ç²¾é€šç³»åˆ— [CQ:face,id=21]", fromQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (checkExist(hack, msg, 3)) {
+        sprintf(bp,
+                "[CQ:at,qq=%lld] å›½å®¶åˆ‘æ³•ç¬¬äºŒç™¾å…«åå…­æ¡è§„å®šï¼Œ\nå…³äºæ¶æ„åˆ©ç”¨è®¡ç®—æœºçŠ¯ç½ªç›¸å…³æ¡æ–‡å¯¹äºè¿åå›½å®¶è§„å®šï¼Œå¯¹è®¡ç®—æœºä¿¡æ¯ç³»ç»ŸåŠŸèƒ½è¿›è¡Œåˆ é™¤ã€ä¿®æ”¹ã€å¢åŠ ã€å¹²æ‰°ï¼Œé€ æˆè®¡ç®—æœºä¿¡æ¯ç³»ç»Ÿä¸èƒ½æ­£å¸¸è¿è¡Œï¼Œåæœä¸¥é‡çš„ï¼Œå¤„äº”å¹´ä»¥ä¸‹æœ‰æœŸå¾’åˆ‘æˆ–è€…æ‹˜å½¹ï¼›åæœç‰¹åˆ«ä¸¥é‡çš„ï¼Œå¤„äº”å¹´ä»¥ä¸Šæœ‰æœŸå¾’åˆ‘ã€‚\nè¿åå›½å®¶è§„å®šï¼Œå¯¹è®¡ç®—æœºä¿¡æ¯ç³»ç»Ÿä¸­å­˜å‚¨ã€å¤„ç†æˆ–è€…ä¼ è¾“çš„æ•°æ®å’Œåº”ç”¨ç¨‹åºè¿›è¡Œåˆ é™¤ã€ä¿®æ”¹ã€å¢åŠ çš„æ“ä½œï¼Œåæœä¸¥é‡çš„ï¼Œä¾ç…§å‰æ¬¾çš„è§„å®šå¤„ç½šã€‚",
+                fromQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (checkExist(reg, msg, 2)) {
+        sprintf(bp, "[CQ:at,qq=%lld] çº¿ä¸Šçš„æŠ¥ååœ°å€æš‚æœªå¼€æ”¾ï¼Œçº¸è´¨åœ¨é¢è¯•çš„æ—¶å€™å¸¦è¿‡æ¥ã€‚\næ¨èçº¿ä¸ŠæŠ¥åo(*^â–½^*)â”›[CQ:face,id=21]", fromQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (checkExist(persion, msg, 3)) {
+        t = time(NULL);
+        local = localtime(&t);
+        char timeb[200];
+        if (local->tm_hour <= 6) {
+            sprintf(bp, "[CQ:at,qq=%lld] è¿™ä¹ˆæ—©ä¼°è®¡æ²¡ä»€ä¹ˆäººèµ·æ¥", fromQQ);
+        } else if (local->tm_hour >= 7 && local->tm_hour <= 9) {
+            sprintf(bp, "[CQ:at,qq=%lld] å¤§æ¦‚éƒ½åœ¨ç¡è§‰å§ï¼Œä¸çŸ¥é“ä»Šå¤©æœ‰æ²¡æœ‰äººæ—©èµ·", fromQQ);
+        } else if (local->tm_hour >= 10 && local->tm_hour <= 11) {
+            sprintf(bp, "[CQ:at,qq=%lld] è¿™ç‚¹åº”è¯¥æœ‰äººå¼€é—¨äº†", fromQQ);
+        } else if (local->tm_hour == 12) {
+            sprintf(bp, "[CQ:at,qq=%lld] ä¸æ¸…æ¥šï¼Œæ²¡æœ‰é›†ä½“å»åƒåˆé¥­çš„è¯åº”è¯¥æœ‰äºº", fromQQ);
+        } else if (local->tm_hour >= 13 && local->tm_hour <= 16) {
+            sprintf(bp, "[CQ:at,qq=%lld] ä¸‹åˆä¸€èˆ¬éƒ½æœ‰äººåœ¨çš„", fromQQ);
+        } else if (local->tm_hour >= 17 && local->tm_hour <= 18) {
+            sprintf(bp, "[CQ:at,qq=%lld] ä¸æ¸…æ¥šï¼Œæ²¡æœ‰é›†ä½“å»åƒæ™šé¥­çš„è¯åº”è¯¥æœ‰äºº", fromQQ);
+        } else if (local->tm_hour >= 19 && local->tm_hour <= 21) {
+            sprintf(bp, "[CQ:at,qq=%lld] äººåº”è¯¥éƒ½æ²¡å›å»å‘¢", fromQQ);
+        } else if (local->tm_hour >= 22 && local->tm_hour <= 23) {
+            sprintf(bp, "[CQ:at,qq=%lld] è¿™ä¹ˆæ™šäº†ï¼Œé™¤éæœ‰äººé€šå®µï¼Œä¸ç„¶åº”è¯¥æ²¡äººäº†", fromQQ);
+        } else {
+            sprintf(bp, "[CQ:at,qq=85645231] ä½ ä»£ç bugäº†", fromQQ);
+        }
+        sprintf(timeb, " %02d:%02d", local->tm_hour, local->tm_min);
+        strcat(bp, timeb);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+        free(bp);
+    }
+    free(bp);
 }
-void checkWord1(int64_t fromGroup, int64_t fromQQ, const char *msg) {
-	int i;
-	char *get;
-	char *bp = (char *)malloc(0x1000);
-	for (i = 0; i < lenIsa; i++) {
-		if (strstr((char *)msg, keyIsa[i])) {
-			break;
-		}
-	}
-	if (i != lenIsa) {
-		for (i = 0; i < lenWhere; i++) {
-			if (strstr((char *)msg, keyWhere[i])) {
-				break;
-			}
-		}
-		if (i != lenWhere) {
-			sprintf(bp, "[CQ:at,qq=%lld] Èç¹ûÄãÊÇÏëÎÊĞÅÏ¢°²È«Ğ­»áµØÖ·µÄ»°¡£ÊÇÔÚÒ»½Ì£¨ĞÅÈÊÂ¥£©111£¬»òÕßÒ»½ÌÈıÂ¥¡°Ò»½ÌÂôÈÈ¹·¡±£¬»¹ÓĞ¿Æ¼¼¹İ613¡£\n»¶Ó­ËæÊ±¹ıÀ´[CQ:face,id=21]", fromQQ);
-			CQ_sendGroupMsg(ac, fromGroup, bp);
-		}
-		free(bp);
-	}
+
+void checkWord1(int64_t fromGroup, int64_t fromQQ, const char *msg)
+{
+    int i;
+    char *get;
+    char *bp = (char *) malloc(0x1000);
+    for (i = 0; i < lenIsa; i++) {
+        if (strstr((char *) msg, keyIsa[i])) {
+            break;
+        }
+    }
+    if (i != lenIsa) {
+        for (i = 0; i < lenWhere; i++) {
+            if (strstr((char *) msg, keyWhere[i])) {
+                break;
+            }
+        }
+        if (i != lenWhere) {
+            sprintf(bp, "[CQ:at,qq=%lld] å¦‚æœä½ æ˜¯æƒ³é—®ä¿¡æ¯å®‰å…¨åä¼šåœ°å€çš„è¯ã€‚æ˜¯åœ¨ä¸€æ•™ï¼ˆä¿¡ä»æ¥¼ï¼‰111ï¼Œæˆ–è€…ä¸€æ•™ä¸‰æ¥¼â€œä¸€æ•™å–çƒ­ç‹—â€ï¼Œè¿˜æœ‰ç§‘æŠ€é¦†613ã€‚\næ¬¢è¿éšæ—¶è¿‡æ¥[CQ:face,id=21]", fromQQ);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+        }
+        free(bp);
+    }
 }
+
 /*
-* Type=2 ÈºÏûÏ¢
+* Type=2 ç¾¤æ¶ˆæ¯
 */
-CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
-	if (fromGroup == 650591057 && (fromQQ == 85645231 || fromQQ == 387210935 ||fromQQ == 269106906 ||fromQQ == 407508177) && *msg == '$') {
-		adminCmd(fromGroup,&msg[1]);
-	}
-	if (fromGroup == 650591057) {
-		int64_t QQID;
-		int a1;
-		int padding;
-		char *t;
-		long int ti;
-		char *bp = (char *)malloc(0x1000);
-		srand(time(NULL));
-		if (strncmp(msg, "roll:", 5) == 0) {
-			QQID = strtoll(&msg[5], &t, 10);
-			padding = rand() % 100;
-			Sleep(padding);
-			a1 = rand() % 100;
-			ti = atoi(t + 1);
-			ti = ti / 1;
-			if (ti >10 ) {
-				ti = 10;
-			}
-			if (fromQQ == QQID || ti < 0) {
-				sprintf(bp, "[CQ:at,qq=%lld] Æ¤£¿", fromQQ);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				CQ_setGroupBan(ac, fromGroup, fromQQ, 600);
-				free(bp);
-			}
-			else switch (ti)
-			{
-			case 1:
-				if (a1 <= 70) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ70%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ70%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 2:
-				if (a1 <= 65) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ65%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ65%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 3:
-				if (a1 <= 60) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ60%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ60%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 4:
-				if (a1 <= 55) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ55%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ55%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 5:
-				if (a1 <= 50) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ50%)", fromQQ ,QQID );
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti*60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ50%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 6:
-				if (a1 <= 40) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ40%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ40%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 7:
-				if (a1 <= 30) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ30%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ30%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 8:
-				if (a1 <= 20) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ20%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ20%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 9:
-				if (a1 <= 10) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ10%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ10%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			case 10:
-				if (a1 <= 5) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ¡£(³É¹¦ÂÊ5%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼²¶»ñ [CQ:at,qq=%lld]×÷ÎªRBQ,½á¹û·´±»¿ÚÇò¡£(³É¹¦ÂÊ5%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-					free(bp);
-				}
-				break;
-			default:
-				if (a1 <= 5) {
-					sprintf(bp, "[CQ:at,qq=%lld] ³É¹¦°Ñ [CQ:at,qq=%lld]´ÓRBQÖĞ½â¾È³öÀ´¡£(³É¹¦ÂÊ5%)", fromQQ, QQID);
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
-					free(bp);
-				}
-				else {
-					sprintf(bp, "[CQ:at,qq=%lld] ÊÔÍ¼°Ñ [CQ:at,qq=%lld]´ÓRBQÖĞ½â¾È³öÀ´,Ã»Ïëµ½ [CQ:at,qq=%lld]ÒÑ¾­³ÁÃÔÆäÖĞ¡£(³É¹¦ÂÊ5%)", fromQQ, QQID ,QQID );
-					CQ_sendGroupMsg(ac, fromGroup, bp);
-					free(bp);
-				}
-				break;
-			}
-		}
-	}
-	if (fromGroup == 650591057) {
-		char *atMe = "[CQ:at,qq=942666657]";
-		char *at = strstr((char *)msg, atMe);
+static time_t lastCheckTime;
+CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font)
+{
+    time_t timeCheck = time(NULL);
+    struct tm *local = localtime(&timeCheck);
+    struct tm *last = localtime(&lastCheckTime);
+    if (local->tm_yday != last->tm_yday) {
+        lastCheckTime = timeCheck;
+        cachedMembers.clear();//åˆ·æ–°æ‰€æœ‰äººçŠ¶æ€ï¼ˆæ¸…ç©ºcacheï¼‰
+    }
+    if (fromGroup == ACTIVATED_QQGROUP && inList(fromQQ) && *msg == '$') {
+        adminCmd(fromGroup, &msg[1]);
+    }
+    if (fromGroup == ACTIVATED_QQGROUP) {
+        char *t;
+        int64_t QQID = strtoll(&msg[5], &t, 10);
+        int32_t reqTime = atoi(t + 1);
+        srand(time(NULL));
+        if (g_rollPlayEnabled && strncmp(msg, "roll:", 5) == 0) {
+            cachedMembers[QQID].qq = QQID;
+            cachedMembers[fromQQ].qq = fromQQ;
+            char *bp = (char *) malloc(0x1000);
+            if (fromQQ == QQID) {
+                sprintf(bp, "[CQ:at,qq=%lld] çš®ï¼Ÿ", fromQQ);
+                CQ_sendGroupMsg(ac, fromGroup, bp);
+                CQ_setGroupBan(ac, fromGroup, fromQQ, 1 * 60);
+                free(bp);
+            } else {
+                cachedMembers[fromQQ].cmdCount++;
+                if (cachedMembers[fromQQ].cmdCount < AVAILABLE_DAILY_CMD)
+                    rollFight((uint32_t) (reqTime < 0 ? (-reqTime) : reqTime), cachedMembers[fromQQ], cachedMembers[QQID], fromGroup);
+            }
+        }
+        if (g_rollPlayEnabled && strncmp(msg, "$revenge", 8) == 0) {//å¤ä»‡
+            cachedMembers[fromQQ].qq = fromQQ;
+            //cachedMembers[fromQQ].cmdCount++;//ç®—äº†ï¼Œå¤ä»‡ä¸é™æ¬¡æ•°
+            //if (cachedMembers[fromQQ].cmdCount < AVAILABLE_DAILY_CMD)
+            revenge(cachedMembers[fromQQ], fromGroup);
+        }
+    }
+    if (fromGroup == ACTIVATED_QQGROUP) {
+        char *atMe = "[CQ:at,qq=942666657]";
+        char *at = strstr((char *) msg, atMe);
 
-		if (strstr(msg, "½ûÑÔÎÒ") || strstr(msg, "Çó½ûÑÔ") || 
-			(strstr(msg, "Çó") && strstr(msg, "½ûÑÔ") && (msg, "ÎÒ"))) {
+        if (strstr(msg, "ç¦è¨€æˆ‘") || strstr(msg, "æ±‚ç¦è¨€") ||
+            (strstr(msg, "æ±‚") && strstr(msg, "ç¦è¨€") && (msg, "æˆ‘"))) {
 
-			srand((unsigned)time(NULL));
-			// talk is cheap, show me your face~ :)
-			CQ_setGroupBan(ac, fromGroup, fromQQ, rand() % (6 * 3600));
-			CQ_sendGroupMsg(ac, fromGroup, "À´Ñ½£¡»¥ÏàÉËº¦°¡£¡Æ¤£¿");
-			CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] °¥ßÏ£¬Õ¦²»ËµËµ»°ÁË£¿");
-			CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] Äãµ¹ÊÇËµ»°°¡!£¿");
-			CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] ÓĞÊ²Ã´Ô©ÇüÄãËµ³öÀ´°¡£¡");
-		}
+            srand((unsigned) time(NULL));
+            // talk is cheap, show me your face~ :)
+            CQ_setGroupBan(ac, fromGroup, fromQQ, rand() % (6 * 3600));
+            CQ_sendGroupMsg(ac, fromGroup, "æ¥å‘€ï¼äº’ç›¸ä¼¤å®³å•Šï¼çš®ï¼Ÿ");
+            CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] å“å‘¦ï¼Œå’‹ä¸è¯´è¯´è¯äº†ï¼Ÿ");
+            CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] ä½ å€’æ˜¯è¯´è¯å•Š!ï¼Ÿ");
+            CQ_sendGroupMsg(ac, fromGroup, "[CQ:at,qq=%lld] æœ‰ä»€ä¹ˆå†¤å±ˆä½ è¯´å‡ºæ¥å•Šï¼");
+        }
 
-		if (at != NULL) {
-			requestAt(fromGroup, fromQQ, msg);
-		}
-	}
-	if (fromGroup == 650591057) {
-		char *getImage = "[CQ:image,file=";
-		char *get = strstr((char *)msg, getImage);
-		if (get != NULL) {
-			EnterCriticalSection(&_critical);
-			checkImage(fromGroup, fromQQ, msg);
-			LeaveCriticalSection(&_critical);
-		}
-	}
-	if (fromGroup == 650591057 ) {
-		checkWord(fromGroup, fromQQ, msg);
-	}
+        if (at != NULL) {
+            requestAt(fromGroup, fromQQ, msg);
+        }
+    }
+    if (fromGroup == ACTIVATED_QQGROUP) {
+        char *getImage = "[CQ:image,file=";
+        char *get = strstr((char *) msg, getImage);
+        if (get != NULL) {
+            EnterCriticalSection(&_critical);
+            checkImage(fromGroup, fromQQ, msg);
+            LeaveCriticalSection(&_critical);
+        }
+    }
+    if (fromGroup == ACTIVATED_QQGROUP) {
+        checkWord(fromGroup, fromQQ, msg);
+    }
 
-	if (fromGroup == 650591057 || fromGroup == 536559442) {
-		if (!strcmp(msg, "Ã¿ÈÕÏûÏ¢ÍÆËÍ") || !strcmp(msg, "Ã¿ÈÕĞÂÎÅ") || !strcmp(msg, "½ñÈÕĞÂÎÅ")) {
-			News(fromGroup);
-		}
-	}
+    if (fromGroup == ACTIVATED_QQGROUP || fromGroup == 536559442) {
+        if (!strcmp(msg, "æ¯æ—¥æ¶ˆæ¯æ¨é€") || !strcmp(msg, "æ¯æ—¥æ–°é—»") || !strcmp(msg, "ä»Šæ—¥æ–°é—»")) {
+            News(fromGroup);
+        }
+    }
 
-	if (fromGroup == 650591057 || fromGroup == 536559442) {
-		if (!strcmp(msg, "½üÆÚÏûÏ¢ÍÆËÍ") || !strcmp(msg, "×î½üÏûÏ¢ÍÆËÍ") || !strcmp(msg, "×î½üĞÂÎÅ")) {
-			recentNews(fromGroup);
-		}
-	}
+    if (fromGroup == ACTIVATED_QQGROUP || fromGroup == 536559442) {
+        if (!strcmp(msg, "è¿‘æœŸæ¶ˆæ¯æ¨é€") || !strcmp(msg, "æœ€è¿‘æ¶ˆæ¯æ¨é€") || !strcmp(msg, "æœ€è¿‘æ–°é—»")) {
+            recentNews(fromGroup);
+        }
+    }
 
-	
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=4 ÌÖÂÛ×éÏûÏ¢
+* Type=4 è®¨è®ºç»„æ¶ˆæ¯
 */
-CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t sendTime, int64_t fromDiscuss, int64_t fromQQ, const char *msg, int32_t font) {
+CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t sendTime, int64_t fromDiscuss, int64_t fromQQ, const char *msg, int32_t font)
+{
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=101 ÈºÊÂ¼ş-¹ÜÀíÔ±±ä¶¯
-* subType ×ÓÀàĞÍ£¬1/±»È¡Ïû¹ÜÀíÔ± 2/±»ÉèÖÃ¹ÜÀíÔ±
+* Type=101 ç¾¤äº‹ä»¶-ç®¡ç†å‘˜å˜åŠ¨
+* subType å­ç±»å‹ï¼Œ1/è¢«å–æ¶ˆç®¡ç†å‘˜ 2/è¢«è®¾ç½®ç®¡ç†å‘˜
 */
-CQEVENT(int32_t, __eventSystem_GroupAdmin, 24)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t beingOperateQQ) {
+CQEVENT(int32_t, __eventSystem_GroupAdmin, 24)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t beingOperateQQ)
+{
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=102 ÈºÊÂ¼ş-Èº³ÉÔ±¼õÉÙ
-* subType ×ÓÀàĞÍ£¬1/ÈºÔ±Àë¿ª 2/ÈºÔ±±»Ìß 3/×Ô¼º(¼´µÇÂ¼ºÅ)±»Ìß
-* fromQQ ²Ù×÷ÕßQQ(½ösubTypeÎª2¡¢3Ê±´æÔÚ)
-* beingOperateQQ ±»²Ù×÷QQ
+* Type=102 ç¾¤äº‹ä»¶-ç¾¤æˆå‘˜å‡å°‘
+* subType å­ç±»å‹ï¼Œ1/ç¾¤å‘˜ç¦»å¼€ 2/ç¾¤å‘˜è¢«è¸¢ 3/è‡ªå·±(å³ç™»å½•å·)è¢«è¸¢
+* fromQQ æ“ä½œè€…QQ(ä»…subTypeä¸º2ã€3æ—¶å­˜åœ¨)
+* beingOperateQQ è¢«æ“ä½œQQ
 */
-CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ) {
+CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ)
+{
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=103 ÈºÊÂ¼ş-Èº³ÉÔ±Ôö¼Ó
-* subType ×ÓÀàĞÍ£¬1/¹ÜÀíÔ±ÒÑÍ¬Òâ 2/¹ÜÀíÔ±ÑûÇë
-* fromQQ ²Ù×÷ÕßQQ(¼´¹ÜÀíÔ±QQ)
-* beingOperateQQ ±»²Ù×÷QQ(¼´¼ÓÈºµÄQQ)
+* Type=103 ç¾¤äº‹ä»¶-ç¾¤æˆå‘˜å¢åŠ 
+* subType å­ç±»å‹ï¼Œ1/ç®¡ç†å‘˜å·²åŒæ„ 2/ç®¡ç†å‘˜é‚€è¯·
+* fromQQ æ“ä½œè€…QQ(å³ç®¡ç†å‘˜QQ)
+* beingOperateQQ è¢«æ“ä½œQQ(å³åŠ ç¾¤çš„QQ)
 */
-CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ) {
-	char *bp = (char *)malloc(0x1000);
-	if (fromGroup == 650591057) {
-		srand(time(NULL));
-		int index = rand() % lenWelcode;
-		sprintf(bp, "[CQ:at,qq=%lld] »¶Ó­¼ÓÈëVidar-Team2017½ìĞÂÉúÈº\nÇëÏÈÔÄ¶ÁÒÔÏÂÊÂÏî£º\n1¡¢Ğ­»á¹ÙÍø: https://vidar.club \nwiki£ºhttps://wiki.vidar.club/doku.php \ndrops£ºhttps://drops.vidar.club/ \n2¡¢ÎªÁËÈÃ´ó¼Ò¸üºÃµÄÏà»¥ÁË½â£¬ÇëÏÈ¸ü¸ÄÒ»ÏÂÈºÃûÆ¬¡£\n±¸×¢¸ñÊ½Îª17-×¨Òµ-ĞÕÃû\n3¡¢ÈçÓĞÈÎºÎÒÉÎÊ£¬ÇëÔÚÈºÀï°¬ÌØ¹ÜÀíÔ±ÌáÎÊ \n PS:%s", beingOperateQQ, welcome[index]);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	if (fromGroup == 198508284) {
-		sprintf(bp, "»¶Ó­¼ÓÈëº¼Öİµç×Ó¿Æ¼¼´óÑ§2016¼¶ÍøÂç¿Õ¼ä°²È«Ñ§ÔºĞÂÉúÈº¡£\nÎªÁËÈÃ´ó¼Ò¸üºÃµÄÏà»¥ÁË½â£¬ÇëÏÈ¸ü¸ÄÒ»ÏÂÈºÃûÆ¬¡£\n±¸×¢¸ñÊ½Îª×¨Òµ-Ê¡·İ-ĞÕÃû\nPS:×Ô¾õ±¬ÕÕÅ¶[CQ:face,id=21]", beingOperateQQ);
-		CQ_sendGroupMsg(ac, fromGroup, bp);
-	}
-	free(bp);
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ)
+{
+    char *bp = (char *) malloc(0x1000);
+    if (fromGroup == ACTIVATED_QQGROUP) {
+        srand(time(NULL));
+        int index = rand() % lenWelcode;
+        sprintf(bp,
+                "[CQ:at,qq=%lld] æ¬¢è¿åŠ å…¥Vidar-Team2017å±Šæ–°ç”Ÿç¾¤\nè¯·å…ˆé˜…è¯»ä»¥ä¸‹äº‹é¡¹ï¼š\n1ã€åä¼šå®˜ç½‘: https://vidar.club \nwikiï¼šhttps://wiki.vidar.club/doku.php \ndropsï¼šhttps://drops.vidar.club/ \n2ã€ä¸ºäº†è®©å¤§å®¶æ›´å¥½çš„ç›¸äº’äº†è§£ï¼Œè¯·å…ˆæ›´æ”¹ä¸€ä¸‹ç¾¤åç‰‡ã€‚\nå¤‡æ³¨æ ¼å¼ä¸º17-ä¸“ä¸š-å§“å\n3ã€å¦‚æœ‰ä»»ä½•ç–‘é—®ï¼Œè¯·åœ¨ç¾¤é‡Œè‰¾ç‰¹ç®¡ç†å‘˜æé—® \n PS:%s",
+                beingOperateQQ, welcome[index]);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    if (fromGroup == 198508284) {
+        sprintf(bp, "æ¬¢è¿åŠ å…¥æ­å·ç”µå­ç§‘æŠ€å¤§å­¦2016çº§ç½‘ç»œç©ºé—´å®‰å…¨å­¦é™¢æ–°ç”Ÿç¾¤ã€‚\nä¸ºäº†è®©å¤§å®¶æ›´å¥½çš„ç›¸äº’äº†è§£ï¼Œè¯·å…ˆæ›´æ”¹ä¸€ä¸‹ç¾¤åç‰‡ã€‚\nå¤‡æ³¨æ ¼å¼ä¸ºä¸“ä¸š-çœä»½-å§“å\nPS:è‡ªè§‰çˆ†ç…§å“¦[CQ:face,id=21]", beingOperateQQ);
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+    }
+    free(bp);
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=201 ºÃÓÑÊÂ¼ş-ºÃÓÑÒÑÌí¼Ó
+* Type=201 å¥½å‹äº‹ä»¶-å¥½å‹å·²æ·»åŠ 
 */
-CQEVENT(int32_t, __eventFriend_Add, 16)(int32_t subType, int32_t sendTime, int64_t fromQQ) {
+CQEVENT(int32_t, __eventFriend_Add, 16)(int32_t subType, int32_t sendTime, int64_t fromQQ)
+{
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=301 ÇëÇó-ºÃÓÑÌí¼Ó
-* msg ¸½ÑÔ
-* responseFlag ·´À¡±êÊ¶(´¦ÀíÇëÇóÓÃ)
+* Type=301 è¯·æ±‚-å¥½å‹æ·»åŠ 
+* msg é™„è¨€
+* responseFlag åé¦ˆæ ‡è¯†(å¤„ç†è¯·æ±‚ç”¨)
 */
-CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, const char *responseFlag) {
+CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, const char *responseFlag)
+{
 
-	//CQ_setFriendAddRequest(ac, responseFlag, REQUEST_ALLOW, "");
+    //CQ_setFriendAddRequest(ac, responseFlag, REQUEST_ALLOW, "");
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 
 /*
-* Type=302 ÇëÇó-ÈºÌí¼Ó
-* subType ×ÓÀàĞÍ£¬1/ËûÈËÉêÇëÈëÈº 2/×Ô¼º(¼´µÇÂ¼ºÅ)ÊÜÑûÈëÈº
-* msg ¸½ÑÔ
-* responseFlag ·´À¡±êÊ¶(´¦ÀíÇëÇóÓÃ)
+* Type=302 è¯·æ±‚-ç¾¤æ·»åŠ 
+* subType å­ç±»å‹ï¼Œ1/ä»–äººç”³è¯·å…¥ç¾¤ 2/è‡ªå·±(å³ç™»å½•å·)å—é‚€å…¥ç¾¤
+* msg é™„è¨€
+* responseFlag åé¦ˆæ ‡è¯†(å¤„ç†è¯·æ±‚ç”¨)
 */
-CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *msg, const char *responseFlag) {
+CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *msg, const char *responseFlag)
+{
 
-	//if (subType == 1) {
-	//	CQ_setGroupAddRequestV2(ac, responseFlag, REQUEST_GROUPADD, REQUEST_ALLOW, "");
-	//} else if (subType == 2) {
-	//	CQ_setGroupAddRequestV2(ac, responseFlag, REQUEST_GROUPINVITE, REQUEST_ALLOW, "");
-	//}
+    //if (subType == 1) {
+    //	CQ_setGroupAddRequestV2(ac, responseFlag, REQUEST_GROUPADD, REQUEST_ALLOW, "");
+    //} else if (subType == 2) {
+    //	CQ_setGroupAddRequestV2(ac, responseFlag, REQUEST_GROUPINVITE, REQUEST_ALLOW, "");
+    //}
 
-	return EVENT_IGNORE; //¹ØÓÚ·µ»ØÖµËµÃ÷, ¼û¡°_eventPrivateMsg¡±º¯Êı
+    return EVENT_IGNORE; //å…³äºè¿”å›å€¼è¯´æ˜, è§â€œ_eventPrivateMsgâ€å‡½æ•°
 }
 
 /*
-* ²Ëµ¥£¬¿ÉÔÚ .json ÎÄ¼şÖĞÉèÖÃ²Ëµ¥ÊıÄ¿¡¢º¯ÊıÃû
-* Èç¹û²»Ê¹ÓÃ²Ëµ¥£¬ÇëÔÚ .json ¼°´Ë´¦É¾³ıÎŞÓÃ²Ëµ¥
+* èœå•ï¼Œå¯åœ¨ .json æ–‡ä»¶ä¸­è®¾ç½®èœå•æ•°ç›®ã€å‡½æ•°å
+* å¦‚æœä¸ä½¿ç”¨èœå•ï¼Œè¯·åœ¨ .json åŠæ­¤å¤„åˆ é™¤æ— ç”¨èœå•
 */
-CQEVENT(int32_t, __menuA, 0)() {
-	MessageBoxA(NULL, "ÕâÊÇmenuA£¬ÔÚÕâÀïÔØÈë´°¿Ú£¬»òÕß½øĞĞÆäËû¹¤×÷¡£", "" ,0);
-	return 0;
+CQEVENT(int32_t, __menuA, 0)()
+{
+    MessageBoxA(NULL, "è¿™æ˜¯menuAï¼Œåœ¨è¿™é‡Œè½½å…¥çª—å£ï¼Œæˆ–è€…è¿›è¡Œå…¶ä»–å·¥ä½œã€‚", "", 0);
+    return 0;
 }
 
-CQEVENT(int32_t, __menuB, 0)() {
-	MessageBoxA(NULL, "ÕâÊÇmenuB£¬ÔÚÕâÀïÔØÈë´°¿Ú£¬»òÕß½øĞĞÆäËû¹¤×÷¡£", "" ,0);
-	return 0;
+CQEVENT(int32_t, __menuB, 0)()
+{
+    MessageBoxA(NULL, "è¿™æ˜¯menuBï¼Œåœ¨è¿™é‡Œè½½å…¥çª—å£ï¼Œæˆ–è€…è¿›è¡Œå…¶ä»–å·¥ä½œã€‚", "", 0);
+    return 0;
+}
+
+int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int64_t fromGroup)
+{
+    int player1Roll = rand() % 100;
+    srand((unsigned int) player1Roll);
+    int player2Roll = rand() * rand() % 100;
+
+    int64_t winner = -1;
+    //æ ¹æ®rpä¿®æ­£rollç‚¹ç»“æœ
+    qq1.rpValue = qq1.rpValue > 1000 ? 1 : qq1.rpValue;//è¿™å« ç‰©æå¿…å
+    qq1.rpValue = qq1.rpValue < -500 ? -1 : qq1.rpValue;
+    qq2.rpValue = qq2.rpValue > 1000 ? 1 : qq2.rpValue;
+    qq2.rpValue = qq2.rpValue < -500 ? -1 : qq2.rpValue;
+
+    int32_t rp1 = qq1.rpValue;
+    int32_t rp2 = qq2.rpValue;
+
+    if (inList(qq1.qq))
+        rp1 += 200;//ç®¡ç†å‘˜buff
+    if (inList(qq2.qq))
+        rp2 += 200;
+
+    //rpå€¼æœ€é«˜å¯ä»¥æä¾›3å€rollç‚¹åŠ æˆï¼Œ30rollæˆ90
+    //ä½†ï¼Œä¹Ÿå¯èƒ½rollæˆè´Ÿçš„ï¼Œå¦‚æœæˆåŠŸå¤ªå¤šæ¬¡rpå€¼è´Ÿå¾—å¾ˆå¤šï¼Œé‚£ã€‚ã€‚ã€‚
+    double correctionRatio = rp1 * 2.0 / 1000.0;
+    player1Roll *= 1 + correctionRatio;
+    correctionRatio = rp2 * 2.0 / 1000.0;
+    player2Roll *= 1 + correctionRatio;
+
+    //æ ¹æ®è¯·æ±‚æ—¶é—´ä¿®æ­£é˜ˆå€¼
+    // 1min  -> 60%
+    // 5min  -> 40%
+    // y=-0.05x+0.65
+    // 10min -> 15%
+    // 10min > ? < 30min:
+    // y=1/x
+    // >30min=>impossible
+    int threshold = 0;
+    if (requestTime == 0)
+        threshold = 20;
+    if (requestTime <= 10)
+        threshold = 65 - 5 * requestTime;
+    else if (requestTime > 10 && requestTime < 30)
+        threshold = 100 / requestTime;
+
+    //åˆ¤æ–­è¾“èµ¢äº†
+    if (requestTime != 0) {//æ€
+        bool player1Pass = player1Roll >= (100 - threshold);
+        bool player2Pass = player2Roll >= threshold;
+        char *bp = (char *) malloc(0x1000);
+        if (player1Pass && !player2Pass)//p1 win
+        {
+            qq2.linkedQQ = qq1.qq;
+            qq2.lastBanMinutes = qq2.banMinutes;
+            qq2.banMinutes = requestTime;
+            qq1.linkedQQ = 0;//æ€èµ¢äº†ï¼Œå°±ä¸å†æœ‰å¤ä»‡å¿ƒäº†
+            qq1.rpValue -= rand() % 100;//æ€å¾—è¶Šå¤šï¼Œrpè¶Šä½ï¼Œè¶Šéš¾èµ¢
+            qq2.rpValue += rand() % 50;
+            sprintf(bp, "[CQ:at,qq=%lld] æˆåŠŸæ•è· [CQ:at,qq=%lld]ä½œä¸ºRBQã€‚", qq1.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            CQ_setGroupBan(ac, fromGroup, qq2.qq, requestTime * 60);
+            sprintf(bp, "ï¼ˆæœ¬è½®[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œ[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œç‚¹æ•°å¤§äº%dåˆ¤å®šæˆåŠŸï¼‰", qq1.qq, player1Roll, qq2.qq, player2Roll, threshold);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            winner = qq1.qq;
+        }
+        if (player1Pass && player2Pass)//æˆåŠŸä½†æ˜¯è¢«æ ¼æŒ¡ï¼Œè‡ªå·±ä¹Ÿè¦åƒä¼¤å®³
+        {
+            qq2.linkedQQ = qq1.qq;
+            qq2.lastBanMinutes = qq2.banMinutes;
+            qq2.banMinutes = requestTime;
+            qq1.lastBanMinutes = qq1.banMinutes;
+            qq1.banMinutes = 1;
+            qq1.linkedQQ = qq2.qq;
+            qq1.rpValue += rand() % 20;//å®‰æ…°æ€§é¼“åŠ±
+            sprintf(bp, "[CQ:at,qq=%lld] è¯•å›¾æ•è· [CQ:at,qq=%lld]ä½œä¸ºRBQï¼Œä½†å¯¹æ–¹æˆ˜åŠ›é«˜å¼ºï¼Œç«Ÿè¢«æ ¼æŒ¡è€Œé­åå™¬éœ‡ä¼¤", qq1.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            CQ_setGroupBan(ac, fromGroup, qq2.qq, requestTime * 60);
+            CQ_setGroupBan(ac, fromGroup, qq1.qq, 1 * 60);
+            sprintf(bp, "ï¼ˆæœ¬è½®[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œ[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œç‚¹æ•°å¤§äº%dåˆ¤å®šæˆåŠŸï¼‰", qq1.qq, player1Roll, qq2.qq, player2Roll, threshold);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            winner = 0;
+        }
+        if (!player1Pass && player2Pass)//å“‡è¢«åæ€ï¼Œä¼šä¸ä¼šç©ï¼Œæ€¼è‡ªå·±çš„å§
+        {
+            qq1.linkedQQ = qq1.qq;//å“ˆå“ˆå“ˆï¼Œä¸‹æ¬¡è§¦å‘å¤ä»‡å¤ä»‡çš„æ˜¯è‡ªå·±ï¼Œè¿™é‡ŒæŒ–ä¸ªå‘
+            qq1.lastBanMinutes = qq1.banMinutes;
+            qq1.banMinutes = requestTime;
+            qq2.lastBanMinutes = qq2.banMinutes;
+            qq2.banMinutes = 0;
+            qq1.rpValue += rand() % 100;
+            qq2.rpValue -= rand() % 50;
+            sprintf(bp, "[CQ:at,qq=%lld] è¯•å›¾æ•è· [CQ:at,qq=%lld]ä½œä¸ºRBQï¼Œä½†", qq1.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            sprintf(bp, "ã€‚ã€‚çœŸé¸¡å„¿å¼±ï¼Œ [CQ:at,qq=%lld] è‰²å‰å†…èï¼Œç«Ÿç„¶è¢«åæ€äº†ï¼Œä¼šä¸ä¼šç©ï¼Ÿæ°ªé‡‘pyåˆ å·é‡ç»ƒï¼Œé€‰ä¸€ä¸ªå§", qq1.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            CQ_setGroupBan(ac, fromGroup, qq1.qq, requestTime * 60);
+            sprintf(bp, "ï¼ˆæœ¬è½®[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œ[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œç‚¹æ•°å¤§äº%dåˆ¤å®šæˆåŠŸï¼‰", qq1.qq, player1Roll, qq2.qq, player2Roll, threshold);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            winner = qq2.qq;
+        }
+        if (!player1Pass && !player2Pass)//éæ´²éš¾å…„éš¾å¼Ÿï¼Œç›¸å®‰æ— äº‹
+        {
+            qq1.linkedQQ = qq2.qq;
+            qq2.linkedQQ = qq1.qq;//è™½ç„¶æ˜¯èœé¸¡äº’å•„ï¼Œä½†ä»‡æ¨å¿…é¡»å»ºç«‹
+            qq1.lastBanMinutes = qq1.banMinutes;
+            qq1.banMinutes = 0;
+            qq2.lastBanMinutes = qq2.banMinutes;
+            qq2.banMinutes = 0;
+            qq1.rpValue += rand() % 100;//ä½ ä¿©çœŸæƒ¨ï¼Œé¼“åŠ±ä¸€ä¸‹
+            qq2.rpValue += rand() % 100;
+            sprintf(bp, "[CQ:at,qq=%lld] è¯•å›¾æ•è· [CQ:at,qq=%lld]ä½œä¸ºRBQã€‚", qq1.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            sprintf(bp, "ã€‚ã€‚èœé¸¡å„¿æ‰“æ¶ï¼Œä¸çœ‹ä¹Ÿç½¢", qq1.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            sprintf(bp, "ï¼ˆæœ¬è½®[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œ[CQ:at,qq=%lld] Rollå‡º%dç‚¹ï¼Œç‚¹æ•°å¤§äº%dåˆ¤å®šæˆåŠŸï¼‰", qq1.qq, player1Roll, qq2.qq, player2Roll, threshold);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            winner = 0;
+        }
+        free(bp);
+    } else //æ•‘äººï¼Œåªå¯¹å‘èµ·è€…åšåˆ¤å®š
+    {
+        qq2.linkedQQ = 0;//è¢«æ•‘çš„äººä¸èƒ½å¤ä»‡
+        char *bp = (char *) malloc(0x1000);
+        if (player1Roll >= threshold)//æˆåŠŸ
+        {
+            qq1.rpValue -= 20;//æ•‘äººæˆåŠŸ rpç‡ä¸è¦é™é‚£ä¹ˆå¿«
+            sprintf(bp, "[CQ:at,qq=%lld] è¯•å›¾æ‹¯æ•‘ [CQ:at,qq=%lld] ï¼Œä»–çš„å®…å¿ƒä»åšæ„ŸåŠ¨äº†æ“çºµæ¦‚ç‡æ³¢å‡½æ•°çš„è™šæ— ä¹‹ç¥ï¼Œ[CQ:at,qq=%lld] å¾—åˆ°äº†è§£è„±ã€‚", qq1.qq, qq2.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            CQ_setGroupBan(ac, fromGroup, qq2.qq, 0);
+            winner = qq1.qq;
+        } else//å¤±è´¥
+        {
+            //å¤±è´¥ä¹Ÿä¸åŠ rpå€¼
+            sprintf(bp, "[CQ:at,qq=%lld] è¯•å›¾æ‹¯æ•‘ [CQ:at,qq=%lld] ï¼Œç„¶è€ŒåŠŸåŠ›ä¸è¶³ï¼Œåè¢«è¿åï¼Œä½ é™ª [CQ:at,qq=%lld] ä¸€èµ·ä¿®ç‚¼ä¿®ç‚¼å§", qq1.qq, qq2.qq, qq2.qq);
+            CQ_sendGroupMsg(ac, fromGroup, bp);
+            int ban = qq2.banMinutes / 3;
+            if (ban < 1)
+                ban = 1;
+            qq1.linkedQQ = qq2.qq;//äººå¿ƒé™©æ¶ï¼Œæˆ‘æ•‘ä½ ï¼Œä½ å®³æˆ‘ï¼Œæˆ‘æ¨ä½ ã€‚
+            qq1.lastBanMinutes = qq1.banMinutes;
+            qq1.banMinutes = (uint32_t) ban;
+            CQ_setGroupBan(ac, fromGroup, qq1.qq, ban * 60);
+            winner = 0;
+        }
+        free(bp);
+    }
+    return winner;
+}
+
+int64_t revenge(MemberState &qq1, int64_t fromGroup)//å¤ä»‡
+{
+    char *bp = (char *) malloc(0x1000);
+    sprintf(bp, "ä¸§å¿ƒç—…ç‹‚çš„ [CQ:at,qq=%lld] æƒ³è¦å‘ [CQ:at,qq=%lld]å‘èµ·å¤ä»‡", qq1.qq, qq1.linkedQQ);
+    CQ_sendGroupMsg(ac, fromGroup, bp);
+    int64_t winner = -1;
+    if (qq1.qq == qq1.linkedQQ) {
+        qq1.linkedQQ = 0;
+        sprintf(bp, "ç–¯èµ·æ¥è¿è‡ªå·±éƒ½ç ï¼Œä»–é¡ºåˆ©æŠŠè‡ªå·±å£ä¸Šäº†10åˆ†é’Ÿ");
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+        CQ_setGroupBan(ac, fromGroup, qq1.qq, 10 * 60);
+        winner = 0;
+    } else if (qq1.linkedQQ == 0) {
+        sprintf(bp, "â€¦â€¦ç ç©ºæ°”å—ï¼Ÿåªè§å®ƒæœç©ºä¸­èƒ¡ä¹±æŒ¥èˆäº†å‡ ä¸‹ï¼Œä¾¿éšç€ä¸€é˜µé¢¤æŠ–ç–²è½¯ä¸‹æ¥ã€‚ä»–ç´¯äº†ï¼Œéœ€è¦ä¼‘æ¯ã€‚");
+        CQ_sendGroupMsg(ac, fromGroup, bp);
+        CQ_setGroupBan(ac, fromGroup, qq1.qq, 2 * 60);
+        winner = 0;
+    } else {
+        int32_t rp = qq1.rpValue;
+        qq1.rpValue = 500;//å¤ä»‡buff
+        winner = rollFight(qq1.banMinutes, qq1, cachedMembers[qq1.linkedQQ], fromGroup);
+        qq1.rpValue = rp + (qq1.rpValue - 500);//æ¢å¤buff
+    }
+    free(bp);
+
+    return winner;
 }
