@@ -217,10 +217,10 @@ void adminCmd(int64_t fromGroup, const char *msg)
         CQ_sendGroupMsg(ac, fromGroup, bp);
     }
     if (strncmp(msg, "sleep", 5) == 0) {
-        g_rollPlayEnabled = false;
+        g_rollPlayEnabled = 0;
     }
     if (strncmp(msg, "wake", 4) == 0) {
-        g_rollPlayEnabled = true;
+        g_rollPlayEnabled = 1;
     }
     free(bp);
 }
