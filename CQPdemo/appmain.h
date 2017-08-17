@@ -8,8 +8,7 @@
 #define AVAILABLE_DAILY_CMD 20
 #define AVAILABLE_DAILY_AT 20
 
-typedef struct _tagMemberState
-{
+typedef struct _tagMemberState {
     int64_t qq;//能不能改uint啊???
     int64_t linkedQQ;//被连坐惩罚自
     uint32_t cmdCount;//调用命令计数
@@ -18,9 +17,8 @@ typedef struct _tagMemberState
     uint32_t banMinutes;
     uint32_t lastBanMinutes;
     int32_t rpValue;//用于修正roll点结果（黑幕注意）
-    _tagMemberState():qq(0),linkedQQ(0),cmdCount(0),atCount(0),atMasterCount(0),
-    banMinutes(0),lastBanMinutes(0),rpValue(0){}
-}MemberState;
+    _tagMemberState() : qq(0), linkedQQ(0), cmdCount(0), atCount(0), atMasterCount(0), banMinutes(0), lastBanMinutes(0), rpValue(0) {}
+} MemberState;
 
 inline bool inList(int64_t qq)
 {
@@ -30,6 +28,6 @@ inline bool inList(int64_t qq)
             || qq == 407508177);
 }
 
-int64_t rollFight(uint32_t requestTime, MemberState & qq1,MemberState & qq2,int64_t fromGroup);// return winner
-int64_t revenge( MemberState & qq1,int64_t fromGroup);
-static std::map<uint64_t , MemberState> cachedMembers;
+int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int64_t fromGroup);// return winner
+int64_t revenge(MemberState &qq1, int64_t fromGroup);
+static std::map<int64_t, MemberState> cachedMembers;

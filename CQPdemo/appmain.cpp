@@ -224,10 +224,9 @@ int64_t times[200];
 void requestAt(int64_t fromGroup, int64_t fromQQ, const char *msg)
 {
     cachedMembers[fromQQ].qq = fromQQ;
-    cachedMembers[fromQQ].atMasterCount ++;
+    cachedMembers[fromQQ].atMasterCount++;
     char *bp = (char *) malloc(0x1000);
-    if(cachedMembers[fromQQ].atMasterCount > AVAILABLE_DAILY_AT)
-    {
+    if (cachedMembers[fromQQ].atMasterCount > AVAILABLE_DAILY_AT) {
         CQ_setGroupBan(ac, fromGroup, fromQQ, 60);
         sprintf(bp, "[CQ:at,qq=%lld] 好烦啊你，今天你都@老子%d次了", cachedMembers[fromQQ].atMasterCount);
         CQ_sendGroupMsg(ac, fromGroup, bp);
@@ -426,6 +425,7 @@ void checkWord1(int64_t fromGroup, int64_t fromQQ, const char *msg)
         free(bp);
     }
 }
+
 /*
 * Type=2 群消息
 */
@@ -434,9 +434,8 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 {
     time_t timeCheck = time(NULL);
     struct tm *local = localtime(&timeCheck);
-    struct tm *last  = localtime(&lastCheckTime);
-    if(local->tm_yday != last->tm_yday)
-    {
+    struct tm *last = localtime(&lastCheckTime);
+    if (local->tm_yday != last->tm_yday) {
         lastCheckTime = timeCheck;
         cachedMembers.clear();//刷新所有人状态（清空cache）
     }
@@ -460,7 +459,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
             } else {
                 cachedMembers[fromQQ].cmdCount++;
                 if (cachedMembers[fromQQ].cmdCount < AVAILABLE_DAILY_CMD)
-                    rollFight(reqTime, cachedMembers[fromQQ], cachedMembers[QQID], fromGroup);
+                    rollFight((uint32_t) (reqTime < 0 ? (-reqTime) : reqTime), cachedMembers[fromQQ], cachedMembers[QQID], fromGroup);
             }
         }
         if (strncmp(msg, "$revenge", 5) == 0) {//复仇
@@ -641,8 +640,8 @@ CQEVENT(int32_t, __menuB, 0)()
 int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int64_t fromGroup)
 {
     int player1Roll = rand() % 100;
-    Sleep(player1Roll);
-    int player2Roll = rand() % 100;
+    srand((unsigned int) player1Roll);
+    int player2Roll = rand() * rand() % 100;
 
     int64_t winner = -1;
     //根据rp修正roll点结果
