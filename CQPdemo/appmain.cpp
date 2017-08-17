@@ -234,6 +234,7 @@ void requestAt(int64_t fromGroup, int64_t fromQQ, const char *msg) {
 			times[i * 2] = fromQQ;
 			break;
 		}
+		free(bp);
 	}
 	//sprintf(bp, "[CQ:at,qq=%lld] 找我干什么", fromQQ);
 	//CQ_sendGroupMsg(ac, fromGroup, bp);
@@ -372,6 +373,7 @@ void checkWord(int64_t fromGroup, int64_t fromQQ, const char *msg) {
 		sprintf(timeb, " %02d:%02d", local->tm_hour, local->tm_min);
 		strcat(bp, timeb);
 		CQ_sendGroupMsg(ac, fromGroup, bp);
+		free(bp);
 	}
 	free(bp);
 }
@@ -407,7 +409,6 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 	if (fromGroup == 650591057) {
 		int64_t QQID;
 		int a1;
-		int a2;
 		int padding;
 		char *t;
 		long int ti;
@@ -416,10 +417,10 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 		if (strncmp(msg, "roll:", 5) == 0) {
 			QQID = strtoll(&msg[5], &t, 10);
 			padding = rand() % 100;
-			a1 = rand() % 100;
 			Sleep(padding);
-			a2 = rand() % 100;
+			a1 = rand() % 100;
 			ti = atoi(t + 1);
+			ti = ti / 1;
 			if (ti >10 ) {
 				ti = 10;
 			}
@@ -427,16 +428,163 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 				sprintf(bp, "[CQ:at,qq=%lld] 皮？", fromQQ);
 				CQ_sendGroupMsg(ac, fromGroup, bp);
 				CQ_setGroupBan(ac, fromGroup, fromQQ, 600);
+				free(bp);
 			}
-			else if (a1 <= a2) {
-				sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。([CQ:at,qq=%lld] roll出了 %d点 ,[CQ:at,qq=%lld] roll出了 %d点)", fromQQ ,QQID , fromQQ, a1, QQID, a2);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
-			}
-			else {
-				sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。([CQ:at,qq=%lld] roll出了 %d点 ,[CQ:at,qq=%lld] roll出了 %d点)", fromQQ, QQID, fromQQ, a1, QQID, a2);
-				CQ_sendGroupMsg(ac, fromGroup, bp);
-				CQ_setGroupBan(ac, fromGroup, QQID, 60 * ti);
+			else switch (ti)
+			{
+			case 1:
+				if (a1 <= 70) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率70%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率70%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 2:
+				if (a1 <= 65) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率65%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率65%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 3:
+				if (a1 <= 60) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率60%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率60%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 4:
+				if (a1 <= 55) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率55%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率55%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 5:
+				if (a1 <= 50) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率50%)", fromQQ ,QQID );
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti*60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率50%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 6:
+				if (a1 <= 40) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率40%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率40%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 7:
+				if (a1 <= 30) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率30%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率30%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 8:
+				if (a1 <= 20) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率20%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率20%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 9:
+				if (a1 <= 10) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率10%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率10%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			case 10:
+				if (a1 <= 5) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功捕获 [CQ:at,qq=%lld]作为RBQ。(成功率5%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ,结果反被口球。(成功率5%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, fromQQ, 60 * ti);
+					free(bp);
+				}
+				break;
+			default:
+				if (a1 <= 5) {
+					sprintf(bp, "[CQ:at,qq=%lld] 成功把 [CQ:at,qq=%lld]从RBQ中解救出来。(成功率5%)", fromQQ, QQID);
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					CQ_setGroupBan(ac, fromGroup, QQID, ti * 60);
+					free(bp);
+				}
+				else {
+					sprintf(bp, "[CQ:at,qq=%lld] 试图把 [CQ:at,qq=%lld]从RBQ中解救出来,没想到 [CQ:at,qq=%lld]已经沉迷其中。(成功率5%)", fromQQ, QQID ,QQID );
+					CQ_sendGroupMsg(ac, fromGroup, bp);
+					free(bp);
+				}
+				break;
 			}
 		}
 	}
