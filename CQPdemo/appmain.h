@@ -20,12 +20,17 @@ typedef struct _tagMemberState {
     _tagMemberState() : qq(0), linkedQQ(0), cmdCount(0), atCount(0), atMasterCount(0), banMinutes(0), lastBanMinutes(0), rpValue(0) {}
 } MemberState;
 
-inline bool inList(int64_t qq)
+inline bool qqInList(int64_t qq)
 {
     return (qq == 85645231
             || qq == 387210935
             || qq == 269106906
             || qq == 407508177);
+}
+inline bool groupInList(int64_t group)
+{
+    return (group == ACTIVATED_QQGROUP
+           ||group == 558908229);
 }
 
 int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int64_t fromGroup);// return winner

@@ -119,7 +119,7 @@ CQEVENT(int32_t, __eventDisable, 0)()
 */
 CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, int32_t font)
 {
-	if (fromQQ == 85645231 || fromQQ == 387210935 || fromQQ == 269106906 || fromQQ == 407508177) {
+	if (qqInList(fromQQ)) {
 		char *getImage = "[CQ:image,file=";
 		char *get = strstr((char *)msg, getImage);
 		if (get != NULL) {
@@ -463,10 +463,10 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 		lastCheckTime = timeCheck;
 		cachedMembers.clear();//刷新所有人状态（清空cache）
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) && inList(fromQQ) && *msg == '$') {
+	if (groupInList(fromGroup) && qqInList(fromQQ) && *msg == '$') {
 		adminCmd(fromGroup, &msg[1]);
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *t;
 		int64_t QQID = strtoll(&msg[5], &t, 10);
 		int32_t reqTime = atoi(t + 1);
@@ -494,12 +494,12 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			revenge(cachedMembers[fromQQ], fromGroup);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *atMe = "[CQ:at,qq=942666657]";
 		char *at = strstr((char *)msg, atMe);
 
-		if (strstr(msg, "禁言我") || strstr(msg, "求禁言") ||
-			(strstr(msg, "求") && strstr(msg, "禁言") && (msg, "我"))) {
+		if (!strstr(msg,"有人") && ( strstr(msg, "禁言我") || strstr(msg, "求禁言") ||
+			(strstr(msg, "求") && strstr(msg, "禁言") && (msg, "我")))) {
 
 			srand((unsigned)time(NULL));
 			// talk is cheap, show me your face~ :)
@@ -514,7 +514,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			requestAt(fromGroup, fromQQ, msg);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *getImage = "[CQ:image,file=";
 		char *get = strstr((char *)msg, getImage);
 		if (get != NULL) {
@@ -523,17 +523,17 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			LeaveCriticalSection(&_critical);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		checkWord(fromGroup, fromQQ, msg);
 	}
 
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) || fromGroup == 536559442) {
+	if (groupInList(fromGroup) || fromGroup == 536559442) {
 		if (!strcmp(msg, "每日消息推送") || !strcmp(msg, "每日新闻") || !strcmp(msg, "今日新闻")) {
 			News(fromGroup);
 		}
 	}
 
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) || fromGroup == 536559442) {
+	if (groupInList(fromGroup) || fromGroup == 536559442) {
 		if (!strcmp(msg, "近期消息推送") || !strcmp(msg, "最近消息推送") || !strcmp(msg, "最近新闻")) {
 			recentNews(fromGroup);
 		}
@@ -587,7 +587,7 @@ CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t
 CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ)
 {
 	char *bp = (char *)malloc(0x1000);
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		srand(time(NULL));
 		int index = rand() % lenWelcode;
 		sprintf(bp,
@@ -678,17 +678,17 @@ int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int6
 	int32_t rp1 = qq1.rpValue;
 	int32_t rp2 = qq2.rpValue;
 
-	if (inList(qq1.qq))
+	if (qqInList(qq1.qq))
 		rp1 += 200;//管理员buff
-	if (inList(qq2.qq))
+	if (qqInList(qq2.qq))
 		rp2 += 200;
 
-	//rp值最高可以提供3倍roll点加成，30roll成90
+	//rp值最高可以提供/*3 太多了*/倍roll点加成
 	//但，也可能roll成负的，如果成功太多次rp值负得很多，那。。。
-	double correctionRatio = rp1 * 2.0 / 1000.0;
+	double correctionRatio = rp1 * 1.1 / 1000.0;
 	player1Roll *= 1 + correctionRatio;
 	player1Roll = player1Roll > 100 ? 100 : player1Roll;
-	correctionRatio = rp2 * 2.0 / 1000.0;
+	correctionRatio = rp2 * 1.1 / 1000.0;
 	player2Roll *= 1 + correctionRatio;
 	player2Roll = player2Roll > 100 ? 100 : player2Roll;
 
@@ -718,8 +718,8 @@ int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int6
 		char *bp = (char *)malloc(0x1000);
 		if (requestTime > 30) {
 			player1Pass = false;
-			player2Pass = (player2Roll>1);
-			requestTime = 5;
+			player2Pass = (player2Roll>1);//有1的几率相安无事
+			requestTime = 5;//设置个上限
 		}
 		if (player1Pass && !player2Pass)//p1 win
 		{
@@ -743,7 +743,7 @@ int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int6
 			qq2.banMinutes = requestTime;
 			qq1.lastBanMinutes = qq1.banMinutes;
 			qq1.banMinutes = 1;
-			qq1.linkedQQ = qq2.qq;
+			qq1.linkedQQ = 0;
 			qq1.rpValue += rand() % 20;//安慰性鼓励
 			sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ，但对方战力高强，竟被格挡而遭反噬震伤", qq1.qq, qq2.qq);
 			CQ_sendGroupMsg(ac, fromGroup, bp);
@@ -778,7 +778,7 @@ int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int6
 			qq1.lastBanMinutes = qq1.banMinutes;
 			qq1.banMinutes = 0;
 			qq2.lastBanMinutes = qq2.banMinutes;
-			qq2.banMinutes = 0;
+			qq2.banMinutes = requestTime;
 			qq1.rpValue += rand() % 100;//你俩真惨，鼓励一下
 			qq2.rpValue += rand() % 100;
 			sprintf(bp, "[CQ:at,qq=%lld] 试图捕获 [CQ:at,qq=%lld]作为RBQ。", qq1.qq, qq2.qq);
@@ -830,22 +830,30 @@ int64_t revenge(MemberState &qq1, int64_t fromGroup)//复仇
 	int64_t winner = -1;
 	if (qq1.qq == qq1.linkedQQ) {
 		qq1.linkedQQ = 0;
-		sprintf(bp, "疯起来连自己都砍，他顺利把自己口上了10分钟");
+		sprintf(bp, "疯起来连自己都砍，他顺利给自己塞上了10分钟口球。");
 		CQ_sendGroupMsg(ac, fromGroup, bp);
 		CQ_setGroupBan(ac, fromGroup, qq1.qq, 10 * 60);
 		winner = 0;
 	}
 	else if (qq1.linkedQQ == 0) {
-		sprintf(bp, "……砍空气吗？只见它朝空中胡乱挥舞了几下，便随着一阵颤抖疲软下来。他累了，需要休息。");
+		sprintf(bp, "……砍空气吗？只见他朝空中胡乱挥舞了几下，便随着一阵颤抖疲软下来。他累了，需要休息。");
 		CQ_sendGroupMsg(ac, fromGroup, bp);
 		CQ_setGroupBan(ac, fromGroup, qq1.qq, 2 * 60);
 		winner = 0;
 	}
-	else {
-		int32_t rp = qq1.rpValue;
-		qq1.rpValue = 500;//复仇buff
-		winner = rollFight(qq1.banMinutes, qq1, cachedMembers[qq1.linkedQQ], fromGroup);
-		qq1.rpValue = rp + (qq1.rpValue - 500);//恢复buff
+	else {// 存在linkedQQ复仇对象
+		if(qq1.banMinutes == 0) {
+			sprintf(bp, "……但敲下代码的时候他却突然看透了红尘，不再想参与世俗纷争。他静谧地思考了一分钟。");
+			CQ_sendGroupMsg(ac, fromGroup, bp);
+			CQ_setGroupBan(ac, fromGroup, qq1.qq, 1 * 60);
+		}
+		else {
+			int32_t rp = qq1.rpValue;
+			qq1.rpValue = 500;//复仇buff
+			winner = rollFight(qq1.banMinutes, qq1, cachedMembers[qq1.linkedQQ], fromGroup);
+			qq1.rpValue = rp + (qq1.rpValue - 500);//恢复buff
+		}
+		qq1.linkedQQ = 0;
 	}
 	free(bp);
 
