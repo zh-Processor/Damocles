@@ -119,7 +119,7 @@ CQEVENT(int32_t, __eventDisable, 0)()
 */
 CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, int32_t font)
 {
-	if (fromQQ == 85645231 || fromQQ == 387210935 || fromQQ == 269106906 || fromQQ == 407508177) {
+	if (qqInList(fromQQ)) {
 		char *getImage = "[CQ:image,file=";
 		char *get = strstr((char *)msg, getImage);
 		if (get != NULL) {
@@ -463,10 +463,10 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 		lastCheckTime = timeCheck;
 		cachedMembers.clear();//刷新所有人状态（清空cache）
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) && inList(fromQQ) && *msg == '$') {
+	if (groupInList(fromGroup) && qqInList(fromQQ) && *msg == '$') {
 		adminCmd(fromGroup, &msg[1]);
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *t;
 		int64_t QQID = strtoll(&msg[5], &t, 10);
 		int32_t reqTime = atoi(t + 1);
@@ -494,12 +494,12 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			revenge(cachedMembers[fromQQ], fromGroup);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *atMe = "[CQ:at,qq=942666657]";
 		char *at = strstr((char *)msg, atMe);
 
-		if (strstr(msg, "禁言我") || strstr(msg, "求禁言") ||
-			(strstr(msg, "求") && strstr(msg, "禁言") && (msg, "我"))) {
+		if (!strstr(msg,"有人") && ( strstr(msg, "禁言我") || strstr(msg, "求禁言") ||
+			(strstr(msg, "求") && strstr(msg, "禁言") && (msg, "我")))) {
 
 			srand((unsigned)time(NULL));
 			// talk is cheap, show me your face~ :)
@@ -514,7 +514,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			requestAt(fromGroup, fromQQ, msg);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		char *getImage = "[CQ:image,file=";
 		char *get = strstr((char *)msg, getImage);
 		if (get != NULL) {
@@ -523,17 +523,17 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t
 			LeaveCriticalSection(&_critical);
 		}
 	}
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		checkWord(fromGroup, fromQQ, msg);
 	}
 
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) || fromGroup == 536559442) {
+	if (groupInList(fromGroup) || fromGroup == 536559442) {
 		if (!strcmp(msg, "每日消息推送") || !strcmp(msg, "每日新闻") || !strcmp(msg, "今日新闻")) {
 			News(fromGroup);
 		}
 	}
 
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229) || fromGroup == 536559442) {
+	if (groupInList(fromGroup) || fromGroup == 536559442) {
 		if (!strcmp(msg, "近期消息推送") || !strcmp(msg, "最近消息推送") || !strcmp(msg, "最近新闻")) {
 			recentNews(fromGroup);
 		}
@@ -587,7 +587,7 @@ CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t
 CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ)
 {
 	char *bp = (char *)malloc(0x1000);
-	if ((fromGroup == ACTIVATED_QQGROUP || fromGroup == 558908229)) {
+	if (groupInList(fromGroup)) {
 		srand(time(NULL));
 		int index = rand() % lenWelcode;
 		sprintf(bp,
@@ -678,9 +678,9 @@ int64_t rollFight(uint32_t requestTime, MemberState &qq1, MemberState &qq2, int6
 	int32_t rp1 = qq1.rpValue;
 	int32_t rp2 = qq2.rpValue;
 
-	if (inList(qq1.qq))
+	if (qqInList(qq1.qq))
 		rp1 += 200;//管理员buff
-	if (inList(qq2.qq))
+	if (qqInList(qq2.qq))
 		rp2 += 200;
 
 	//rp值最高可以提供/*3 太多了*/倍roll点加成
